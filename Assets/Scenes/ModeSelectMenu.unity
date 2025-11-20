@@ -580,6 +580,7 @@ GameObject:
   - component: {fileID: 662212162}
   - component: {fileID: 662212164}
   - component: {fileID: 662212163}
+  - component: {fileID: 662212165}
   m_Layer: 5
   m_Name: Texto seleccion de modo
   m_TagString: Untagged
@@ -603,7 +604,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -439, y: -4}
+  m_AnchoredPosition: {x: -439, y: -124}
   m_SizeDelta: {x: 470.565, y: 59.9386}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &662212163
@@ -626,7 +627,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Seleccionar modo
+  m_text: Seleccionar Modo
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ad0cba4b661e5934983c697b613ceb4e, type: 2}
   m_sharedMaterial: {fileID: 4033891840051680965, guid: ad0cba4b661e5934983c697b613ceb4e, type: 2}
@@ -705,6 +706,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 662212161}
   m_CullTransparentMesh: 1
+--- !u!114 &662212165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 662212161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Seleccionar Modo
 --- !u!1 &665185647
 GameObject:
   m_ObjectHideFlags: 0

@@ -513,7 +513,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 203868945}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 906092701}
+        m_TargetAssemblyTypeName: APIManager, Assembly-CSharp
+        m_MethodName: CambiarIdioma
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: pt
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &203868945
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -563,6 +575,7 @@ GameObject:
   - component: {fileID: 299971013}
   - component: {fileID: 299971015}
   - component: {fileID: 299971014}
+  - component: {fileID: 299971016}
   m_Layer: 5
   m_Name: TextoIdioma
   m_TagString: Untagged
@@ -688,6 +701,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 299971012}
   m_CullTransparentMesh: 1
+--- !u!114 &299971016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299971012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: IDIOMA
 --- !u!1 &409209386
 GameObject:
   m_ObjectHideFlags: 0
@@ -1392,6 +1418,52 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &906092700
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 906092702}
+  - component: {fileID: 906092701}
+  m_Layer: 0
+  m_Name: APIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &906092701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906092700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c29a7869681d09245bce2f49bbe56d5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::APIManager
+  projectId: 8234c0bc-7208-423d-a87a-58b160420cc5
+  currentLanguage: es
+--- !u!4 &906092702
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906092700}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 558.7485, y: 143.28958, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1117465345
 GameObject:
   m_ObjectHideFlags: 0
@@ -1728,7 +1800,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1348709748}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 906092701}
+        m_TargetAssemblyTypeName: APIManager, Assembly-CSharp
+        m_MethodName: CambiarIdioma
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: en
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1348709748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2002,7 +2086,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1484164315}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 906092701}
+        m_TargetAssemblyTypeName: APIManager, Assembly-CSharp
+        m_MethodName: CambiarIdioma
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: es
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1484164315
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2831,3 +2927,4 @@ SceneRoots:
   - {fileID: 1404560258}
   - {fileID: 1157257371}
   - {fileID: 1585524266}
+  - {fileID: 906092702}

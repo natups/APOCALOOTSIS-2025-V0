@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "983809016376",
+    "project_id": "apocalootsis-backend",
+    "storage_bucket": "apocalootsis-backend.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:983809016376:android:5d17d465e4780e104edccd",
+        "android_client_info": {
+          "package_name": "com.menorque3.Apocalootsis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQmcsjrwteUN0hXWMDk6OqppQDjrxa1K8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
