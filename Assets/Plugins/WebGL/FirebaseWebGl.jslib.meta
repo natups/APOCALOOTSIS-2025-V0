@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: dea43e672357cdb4881159d79f96b7f2 
+PluginImporter:
+  serializedVersion: 1
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  platformData:
+  - first: 00000000000000000000000000000000
+    second:
+      enabled: 0
+      settings: {}
+  - first: 062d0000000000000000000000000000
+    second:
+      enabled: 1
+      settings: {}

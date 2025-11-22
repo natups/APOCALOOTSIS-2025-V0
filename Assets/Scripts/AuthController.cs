@@ -1,5 +1,6 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UI; 
+using TMPro; // NECESARIA para usar TextMeshPro (TMP)
 using System.Runtime.InteropServices; 
 
 public class AuthController : MonoBehaviour
@@ -8,22 +9,21 @@ public class AuthController : MonoBehaviour
     // 1. VARIABLES PÚBLICAS (Aparecen en el Inspector)
     // ----------------------------------------------------------------------
     
-    // Paneles
+    // Paneles de UI
     public GameObject loginPanel;
     public GameObject registerPanel;
     
-    // Input Fields (¡Usamos GameObject para que puedas arrastrar el objeto!)
-    // Recuerda arrastrar los inputs que están dentro del LoginPanel
-    public GameObject emailInputObject; 
-    public GameObject passwordInputObject;
+    // Inputs (Usamos GameObject para la ASIGNACIÓN en el Inspector)
+    // ¡ARRATRA EL OBJETO DE ENTRADA COMPLETO AQUÍ!
+    public GameObject loginEmailInputObject; // CAMBIADO a GameObject
+    public GameObject loginPasswordInputObject; // CAMBIADO a GameObject
     
-    // Texto de Estado
-    public Text statusText;
+    // Texto de Estado (TextMeshProUGUI funciona correctamente)
+    public TMPro.TextMeshProUGUI statusText;
 
-    // Variables internas para el componente InputField
-    private InputField loginEmailField;
-    private InputField loginPasswordField;
-
+    // Variables privadas para los COMPONENTES InputField
+    private TMP_InputField loginEmailField; 
+    private TMP_InputField loginPasswordField;
 
     // ----------------------------------------------------------------------
     // 2. DECLARACIÓN DEL PUENTE JAVASCRIPT (.jslib)
@@ -41,11 +41,17 @@ public class AuthController : MonoBehaviour
     
     void Start()
     {
-        // Al inicio, buscamos el componente InputField en los GameObjects que arrastraste.
-        loginEmailField = emailInputObject.GetComponent<InputField>();
-        loginPasswordField = passwordInputObject.GetComponent<InputField>();
+        // En Start(), OBTENEMOS los componentes reales desde los GameObjects arrastrados
+        if (loginEmailInputObject != null)
+        {
+            loginEmailField = loginEmailInputObject.GetComponent<TMP_InputField>();
+        }
+        if (loginPasswordInputObject != null)
+        {
+            loginPasswordField = loginPasswordInputObject.GetComponent<TMP_InputField>();
+        }
 
-        // Esto asegura que al inicio, solo se muestre el panel de Login
+        // Al iniciar el juego, mostramos el panel de Login (y ocultamos Register)
         ShowLoginPanel();
     }
 
@@ -53,14 +59,15 @@ public class AuthController : MonoBehaviour
     {
         loginPanel.SetActive(true);
         registerPanel.SetActive(false);
-        statusText.text = ""; 
+        // Limpia el texto de estado al cambiar de panel
+        if (statusText != null) statusText.text = ""; 
     }
 
     public void ShowRegisterPanel()
     {
         loginPanel.SetActive(false);
         registerPanel.SetActive(true);
-        statusText.text = "";
+        if (statusText != null) statusText.text = "";
     }
 
     // ----------------------------------------------------------------------
@@ -69,34 +76,46 @@ public class AuthController : MonoBehaviour
 
     public void OnLoginClicked()
     {
-        statusText.text = "Iniciando Sesión...";
+        if (statusText != null) statusText.text = "Iniciando Sesión...";
 
-        // Usamos los componentes InputField que encontramos en Start()
-        SignInUser(
-            loginEmailField.text, 
-            loginPasswordField.text, 
-            gameObject.name, 
-            nameof(OnAuthSuccess),
-            nameof(OnAuthFailure)
-        );
+        // Usamos los campos privados que se inicializaron en Start()
+        if (loginEmailField != null && loginPasswordField != null)
+        {
+             SignInUser(
+                loginEmailField.text, 
+                loginPasswordField.text, 
+                gameObject.name, 
+                nameof(OnAuthSuccess),
+                nameof(OnAuthFailure)
+            );
+        } else {
+             if (statusText != null) statusText.text = "Error: Faltan referencias o componentes InputField en el Inspector.";
+        }
     }
 
     public void OnRegisterClicked()
     {
-        statusText.text = "Registrando usuario...";
+        if (statusText != null) statusText.text = "Registrando usuario...";
         
-        // ¡IMPORTANTE! Buscamos los Inputs directamente dentro del RegisterPanel.
-        // Asumimos que el [0] es el Email y el [1] es el Password
-        InputField regEmailInput = registerPanel.GetComponentsInChildren<InputField>()[0]; 
-        InputField regPassInput = registerPanel.GetComponentsInChildren<InputField>()[1]; 
+        // Buscamos los inputs del panel de registro.
+        TMP_InputField[] registerInputs = registerPanel.GetComponentsInChildren<TMP_InputField>();
         
-        RegisterUser(
-            regEmailInput.text, 
-            regPassInput.text, 
-            gameObject.name, 
-            nameof(OnAuthSuccess),
-            nameof(OnAuthFailure)
-        );
+        if (registerInputs.Length >= 2)
+        {
+            // Asumimos [0] es Email y [1] es Password
+            TMP_InputField registerEmailField = registerInputs[0]; 
+            TMP_InputField registerPasswordField = registerInputs[1]; 
+            
+            RegisterUser(
+                registerEmailField.text, 
+                registerPasswordField.text, 
+                gameObject.name, 
+                nameof(OnAuthSuccess),
+                nameof(OnAuthFailure)
+            );
+        } else {
+            if (statusText != null) statusText.text = "Error: Faltan campos de entrada en el Panel de Registro.";
+        }
     }
 
     // ----------------------------------------------------------------------
@@ -105,15 +124,20 @@ public class AuthController : MonoBehaviour
 
     public void OnAuthSuccess(string userId)
     {
-        statusText.text = $"¡Sesión Iniciada! ID: {userId}";
-        Debug.Log("Usuario Autenticado: " + userId);
-        
-        // Aquí puedes cargar la escena del juego
+        if (statusText != null)
+        {
+            statusText.text = $"¡Sesión Iniciada! ID: {userId}";
+            Debug.Log("Usuario Autenticado: " + userId);
+        }
     }
 
     public void OnAuthFailure(string errorMessage)
     {
-        statusText.text = "Error: " + errorMessage;
-        Debug.LogError("Error de Autenticación: " + errorMessage);
+        if (statusText != null)
+        {
+            // Muestra el mensaje de error de Firebase
+            statusText.text = "Error: " + errorMessage;
+            Debug.LogError("Error de Autenticación: " + errorMessage);
+        }
     }
 }
