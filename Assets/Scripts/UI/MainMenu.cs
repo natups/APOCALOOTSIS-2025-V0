@@ -32,11 +32,15 @@ public class MainMenu : MonoBehaviour
 
     // --- MÉTODOS DE NAVEGACIÓN DE ESCENAS ---
 
-    // Esta función es llamada por los botones de Login y Registro.
-    // Es PUBLIC y VOID, por eso aparece en el Inspector.
-    public void LoadAuthenticationScene()
+    // ESTA FUNCIÓN FUE MODIFICADA: AHORA ACEPTA UN STRING (panelName).
+    // Esto hace que en el Inspector de Unity aparezca "LoadAuthenticationScene (string)".
+    public void LoadAuthenticationScene(string panelName)
     {
-        // Esto carga la escena con el nombre exacto "Authentication"
+        // 1. Guarda la instrucción ("Login" o "Register") en PlayerPrefs.
+        PlayerPrefs.SetString("InitialPanel", panelName);
+        PlayerPrefs.Save();
+        
+        // 2. Carga la escena de autenticación.
         SceneManager.LoadScene("Authentication"); 
     }
 

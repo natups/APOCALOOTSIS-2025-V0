@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI; 
 using TMPro; // NECESARIA para usar TextMeshPro (TMP)
 using System.Runtime.InteropServices; 
+using UnityEngine.SceneManagement;
 
 public class AuthController : MonoBehaviour
 {
@@ -14,11 +15,10 @@ public class AuthController : MonoBehaviour
     public GameObject registerPanel;
     
     // Inputs (Usamos GameObject para la ASIGNACIÓN en el Inspector)
-    // ¡ARRATRA EL OBJETO DE ENTRADA COMPLETO AQUÍ!
-    public GameObject loginEmailInputObject; // CAMBIADO a GameObject
-    public GameObject loginPasswordInputObject; // CAMBIADO a GameObject
+    public GameObject loginEmailInputObject; 
+    public GameObject loginPasswordInputObject; 
     
-    // Texto de Estado (TextMeshProUGUI funciona correctamente)
+    // Texto de Estado 
     public TMPro.TextMeshProUGUI statusText;
 
     // Variables privadas para los COMPONENTES InputField
@@ -36,7 +36,7 @@ public class AuthController : MonoBehaviour
     private static extern void SignInUser(string email, string password, string gameObject, string successCallback, string failureCallback);
 
     // ----------------------------------------------------------------------
-    // 3. START Y CONTROL DE PANELES
+    // 3. START Y CONTROL DE PANELES (MODIFICACIÓN CLAVE AQUÍ)
     // ----------------------------------------------------------------------
     
     void Start()
@@ -51,23 +51,51 @@ public class AuthController : MonoBehaviour
             loginPasswordField = loginPasswordInputObject.GetComponent<TMP_InputField>();
         }
 
-        // Al iniciar el juego, mostramos el panel de Login (y ocultamos Register)
-        ShowLoginPanel();
+        // ===================================================================
+        // CORRECCIÓN PARA LA NAVEGACIÓN DESDE MAIN MENU
+        // ===================================================================
+        // Leemos qué panel se debe mostrar al cargar la escena. 
+        // El MainMenu guarda "Login" o "Register" en "InitialPanel".
+        // Si no hay valor guardado, por defecto usamos "Login".
+        string initialPanel = PlayerPrefs.GetString("InitialPanel", "Login"); 
+
+        if (initialPanel == "Register")
+        {
+            ShowRegisterPanel();
+        }
+        else // Si es "Login" o cualquier otro valor (por defecto)
+        {
+            ShowLoginPanel(); 
+        }
+
+        // Limpiamos la preferencia para que no se use en futuras cargas directas
+        PlayerPrefs.DeleteKey("InitialPanel");
+        // ===================================================================
     }
 
     public void ShowLoginPanel()
     {
-        loginPanel.SetActive(true);
-        registerPanel.SetActive(false);
+        if (loginPanel != null) loginPanel.SetActive(true);
+        if (registerPanel != null) registerPanel.SetActive(false);
         // Limpia el texto de estado al cambiar de panel
         if (statusText != null) statusText.text = ""; 
     }
 
     public void ShowRegisterPanel()
     {
-        loginPanel.SetActive(false);
-        registerPanel.SetActive(true);
+        if (loginPanel != null) loginPanel.SetActive(false);
+        if (registerPanel != null) registerPanel.SetActive(true);
         if (statusText != null) statusText.text = "";
+    }
+
+    // --- MÉTODO DE NAVEGACIÓN DE ESCENA ---
+
+    // 1. FUNCIÓN PARA VOLVER AL MENÚ PRINCIPAL
+    // Conectada al BackMenuBtn
+    public void GoBackToMainMenu()
+    {
+        // Carga la escena principal (el nombre DEBE coincidir con el Build Settings)
+        SceneManager.LoadScene("MainMenu"); 
     }
 
     // ----------------------------------------------------------------------
@@ -98,6 +126,12 @@ public class AuthController : MonoBehaviour
         if (statusText != null) statusText.text = "Registrando usuario...";
         
         // Buscamos los inputs del panel de registro.
+        if (registerPanel == null)
+        {
+            if (statusText != null) statusText.text = "Error: El panel de registro no está asignado en el Inspector.";
+            return;
+        }
+
         TMP_InputField[] registerInputs = registerPanel.GetComponentsInChildren<TMP_InputField>();
         
         if (registerInputs.Length >= 2)
