@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// El nombre de la clase debe coincidir con el nombre del archivo: MainMenu
 public class MainMenu : MonoBehaviour
 {
     [Header("Configuración de Paneles")]
-    [Tooltip("Arrastra aquí el objeto padre que contiene tus botones del menú (Jugar, Ajustes, etc)")]
+    [Tooltip("Arrastra aquí el objeto MainMenuUI (el que tiene los botones principales)")]
     public GameObject panelMenuPrincipal;
 
     [Tooltip("Arrastra aquí el Panel que tiene la imagen de los controles")]
@@ -12,10 +13,11 @@ public class MainMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        // Nos aseguramos de que al iniciar, el menú se vea y los controles estén ocultos
+        // Se asegura de que el menú principal esté activo y los controles ocultos al inicio.
         if(panelMenuPrincipal != null) panelMenuPrincipal.SetActive(true);
         if(panelControles != null) panelControles.SetActive(false);
 
+        // Lógica de PlayerPrefs (se mantiene por si la necesitas)
         if (!PlayerPrefs.HasKey("hasStarted"))
         {
             PlayerPrefs.SetInt("hasStarted", 0);
@@ -28,7 +30,15 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    // --- MÉTODOS DE NAVEGACIÓN (Jugar/Salir) ---
+    // --- MÉTODOS DE NAVEGACIÓN DE ESCENAS ---
+
+    // Esta función es llamada por los botones de Login y Registro.
+    // Es PUBLIC y VOID, por eso aparece en el Inspector.
+    public void LoadAuthenticationScene()
+    {
+        // Esto carga la escena con el nombre exacto "Authentication"
+        SceneManager.LoadScene("Authentication"); 
+    }
 
     public void PlayGame()
     {
@@ -39,30 +49,24 @@ public class MainMenu : MonoBehaviour
     {
         SceneManager.LoadScene("Settings");
     }
-
+    
     public void QuitGame()
     {
-        Debug.Log("Salir del juego");
+        Debug.Log("Saliendo del juego...");
         Application.Quit();
     }
 
-    // --- NUEVOS MÉTODOS PARA CONTROLES ---
+    // --- MÉTODOS DE PANELES (Controles) ---
 
     public void AbrirControles()
     {
-        // 1. Ocultamos los botones del menú para que no molesten
         if(panelMenuPrincipal != null) panelMenuPrincipal.SetActive(false);
-        
-        // 2. Mostramos la imagen de los controles
         if(panelControles != null) panelControles.SetActive(true);
     }
 
     public void CerrarControles()
     {
-        // 1. Ocultamos los controles
         if(panelControles != null) panelControles.SetActive(false);
-
-        // 2. Volvemos a mostrar el menú principal
         if(panelMenuPrincipal != null) panelMenuPrincipal.SetActive(true);
     }
 }
