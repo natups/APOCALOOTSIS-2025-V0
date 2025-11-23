@@ -1,203 +1,153 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Apocaloopsis</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Apocaloopsis</div>
-      </div>
-    </div>
-    
-    <!-- *************************************************************** -->
-    <!--          CÓDIGO DE INICIALIZACIÓN DE FIREBASE                   -->
-    <!-- *************************************************************** -->
-    
-    <!-- 1. Carga las librerías del SDK (Versión 9.17.1 como alternativa si 8.10.0 falla) -->
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js"></script>
-    
-    <!-- 2. Inicialización de Firebase y Exportación del Servicio a Unity -->
-    <script>
-        // TU CONFIGURACIÓN DE FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyAlvnCpwVUnAqW7_c2s292WaJCJxZvjetk",
-            authDomain: "apocalootsis-9a9b9.firebaseapp.com",
-            projectId: "apocalootsis-9a9b9",
-            storageBucket: "apocalootsis-9a9b9.firebasestorage.app",
-            messagingSenderId: "822386130016",
-            appId: "1:822386130016:web:d78603e90b8a81ab2b1705",
-            measurementId: "G-ZNSDDZQ131"
-        };
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | Apocaloopsis</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <!-- La división 'unity-warning' se deja vacía y se IGNORARÁ en el JS -->
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Apocaloopsis</div>
+      </div>
+    </div>
+    
+    <!-- *************************************************************** -->
+    <!--          CÓDIGO DE INICIALIZACIÓN DE FIREBASE                   -->
+    <!-- *************************************************************** -->
+    
+    <!-- 1. Carga las librerías del SDK con compatibilidad (v9.x compatible con sintaxis v8) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    
+    <!-- 2. Inicialización de Firebase y Exportación del Servicio Global -->
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlvnCpwVUnAqW7_c2s292WaJCJxZvjetk",
+            authDomain: "apocalootsis-9a9b9.firebaseapp.com",
+            projectId: "apocalootsis-9a9b9",
+            storageBucket: "apocalootsis-9a9b9.firebasestorage.app",
+            messagingSenderId: "822386130016",
+            appId: "1:822386130016:web:d78603e90b8a81ab2b1705",
+            measurementId: "G-ZNSDDZQ131"
+        };
 
-        let auth = null;
+        let auth = null;
+        
+        try {
+            // Inicializa la aplicación
+            const app = firebase.initializeApp(firebaseConfig);
+            // Obtiene el servicio de autenticación
+            auth = app.auth(); 
+            
+            console.log("JS: Firebase App y Auth inicializados correctamente.");
 
-        try {
-            // Inicializa la aplicación (Usamos el SDK global cargado arriba)
-            const app = firebase.initializeApp(firebaseConfig);
-            // Obtiene el servicio de autenticación
-            auth = firebase.auth(); 
-            
-            console.log("JS: Firebase App y Auth inicializados.");
+        } catch (e) {
+            console.error("JS CRITICAL ERROR: No se pudo inicializar Firebase.", e);
+        }
 
-        } catch (e) {
-            console.error("JS CRITICAL ERROR: Could not initialize Firebase.", e);
-        }
+        // 3. EXPORTAR EL SERVICIO GLOBAL 'firebaseAuthService' para Unity
+        if (auth) {
+            window.firebaseAuthService = {
+                
+                // Función de registro (RegisterUser en el .jslib de Unity)
+                register: function(email, password) {
+                    console.log("JS: Intentando registrar usuario:", email);
+                    return auth.createUserWithEmailAndPassword(email, password)
+                        .then((userCredential) => userCredential.user)
+                        .catch((error) => {
+                            console.error("JS Error durante el registro:", error.message);
+                            throw error; 
+                        });
+                },
 
-        // 3. EXPORTAR EL SERVICIO PARA QUE UNITY (el .jslib) PUEDA ACCEDER A ÉL
-        // El .jslib busca exactamente este objeto: window.firebaseAuthService
-        if (auth) {
-            window.firebaseAuthService = {
-                
-                // Función llamada desde RegisterUser en el .jslib
-                register: function(email, password) {
-                    console.log("JS: Attempting to register user:", email);
-                    // Usa el objeto 'auth' creado arriba
-                    return auth.createUserWithEmailAndPassword(email, password)
-                        .then((userCredential) => userCredential.user)
-                        .catch((error) => {
-                            console.error("JS Error during registration:", error.message);
-                            throw error; // Propagar el error a C#
-                        });
-                },
+                // Función de inicio de sesión (SignInUser en el .jslib de Unity)
+                signIn: function(email, password) {
+                    console.log("JS: Intentando iniciar sesión para el usuario:", email);
+                    return auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => userCredential.user)
+                        .catch((error) => {
+                            console.error("JS Error durante el inicio de sesión:", error.message);
+                            throw error; 
+                        });
+                }
+            };
+            console.log("JS: Servicio 'firebaseAuthService' exportado globalmente.");
+        } else {
+             console.error("JS: El objeto Auth es nulo. Los servicios de Firebase no estarán disponibles para Unity.");
+        }
+    </script>
+    
+    <!-- *************************************************************** -->
+    <!--                   INICIALIZACIÓN DEL JUEGO DE UNITY              -->
+    <!-- *************************************************************** -->
+    
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
 
-                // Función llamada desde SignInUser en el .jslib
-                signIn: function(email, password) {
-                    console.log("JS: Attempting to sign in user:", email);
-                    // Usa el objeto 'auth' creado arriba
-                    return auth.signInWithEmailAndPassword(email, password)
-                        .then((userCredential) => userCredential.user)
-                        .catch((error) => {
-                            console.error("JS Error during sign in:", error.message);
-                            throw error; // Propagar el error a C#
-                        });
-                }
-            };
-            console.log("JS: Firebase successfully initialized and service exported.");
-        } else {
-             console.error("JS: Auth object is null, service not exported.");
-        }
-    </script>
-    
-    <!-- *************************************************************** -->
-    <!--                     FIN DEL CÓDIGO DE FIREBASE                  -->
-    <!-- *************************************************************** -->
-    
-    <script>
-      var canvas = document.querySelector("#unity-canvas");
+      // Se elimina la función 'unityShowBanner' por completo para que Unity no intente usarla.
+      // Unity está configurado para no mostrar banners si se realiza el paso en Project Settings.
+      
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/WebGL.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/WebGL.data",
+        frameworkUrl: buildUrl + "/WebGL.framework.js",
+        codeUrl: buildUrl + "/WebGL.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "Apocaloopsis",
+        productVersion: "1.0",
+        // Se omite 'showBanner' para evitar cualquier intento de renderizado de errores/warnings.
+      };
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+      } else {
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/WebGL.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/WebGL.data",
-        frameworkUrl: buildUrl + "/WebGL.framework.js",
-        codeUrl: buildUrl + "/WebGL.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "Apocaloopsis",
-        productVersion: "1.0",
-        showBanner: unityShowBanner,
-      };
+      document.querySelector("#unity-loading-bar").style.display = "block";
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                  document.querySelector("#unity-loading-bar").style.display = "none";
+                  document.querySelector("#unity-fullscreen-button").onclick = () => {
+                    unityInstance.SetFullscreen(1);
+                  };
+              }).catch((message) => {
+                // El error se mostrará solo en la consola del navegador.
+                console.error('Error al cargar Unity: ' + message);
+              });
+            };
 
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
+      document.body.appendChild(script);
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-      }
-
-      document.querySelector("#unity-loading-bar").style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                  document.querySelector("#unity-loading-bar").style.display = "none";
-                  document.querySelector("#unity-fullscreen-button").onclick = () => {
-                    unityInstance.SetFullscreen(1);
-                  };
-
-              }).catch((message) => {
-                // Modificado para usar unityShowBanner en lugar de alert
-                unityShowBanner('Error al cargar Unity: ' + message, 'error'); 
-              });
-            };
-
-      document.body.appendChild(script);
-
-    </script>
-  </body>
+    </script>
+  </body>
 </html>
