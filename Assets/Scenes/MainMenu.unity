@@ -2330,7 +2330,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1518965728}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1518965728
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2561,9 +2573,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f2402e0f16939141a1c06d3357a4fab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuUI
-  loginButton: {fileID: 1095311298}
-  registerButton: {fileID: 1931599054}
-  logoutButton: {fileID: 1518965725}
+  LoginBtn: {fileID: 0}
+  RegisterBtn: {fileID: 0}
+  LogOutBtn: {fileID: 0}
 --- !u!1 &1647646028
 GameObject:
   m_ObjectHideFlags: 0

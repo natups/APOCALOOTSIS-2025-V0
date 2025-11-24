@@ -1,68 +1,90 @@
 mergeInto(LibraryManager.library, {
-    
-    // Función de Registro
-    RegisterUser: function (email, password, gameObjectName, successCallback, failureCallback) {
-        // --- CORRECCIÓN CLAVE ---
-        // Usa UTF8ToString() en lugar de Pointer_stringify()
-        var emailStr = UTF8ToString(email);
-        var passwordStr = UTF8ToString(password);
-        var goName = UTF8ToString(gameObjectName);
-        var successFunc = UTF8ToString(successCallback);
-        var failureFunc = UTF8ToString(failureCallback);
-        // -------------------------
+    // -------------------------------------------------------------------
+    // Funciones de Login y Register (Llamadas desde C#)
+    // -------------------------------------------------------------------
 
-        // Asegúrate de que window.firebaseAuthService esté disponible
-        if (typeof window.firebaseAuthService === 'undefined') {
-            SendMessage(goName, failureFunc, "Error JS: firebaseAuthService is not defined in the HTML/JS setup.");
-            return;
-        }
+    RegisterUser: function (emailPtr, passwordPtr, objectNamePtr, successCallbackPtr, errorCallbackPtr) {
+        var email = UTF8ToString(emailPtr);
+        var password = UTF8ToString(passwordPtr);
+        var objectName = UTF8ToString(objectNamePtr);
+        var successCallback = UTF8ToString(successCallbackPtr);
+        var errorCallback = UTF8ToString(errorCallbackPtr);
+        
+        // Verifica si el servicio de Firebase está disponible
+        if (typeof firebaseAuthService === 'undefined') {
+            var errorMessage = "Error JS: firebaseAuthService is not defined in the HTML/JS setup.";
+            // Llama a la función de error en C#
+            unityInstance.SendMessage(objectName, errorCallback, errorMessage);
+            return;
+        }
 
-        // Llama a la función de Firebase Auth (asumiendo que está definida globalmente en index.html)
-        window.firebaseAuthService.register(emailStr, passwordStr)
-            .then(function(user) {
-                // Éxito: Devuelve el UID del usuario a Unity
-                if (user && user.uid) {
-                    SendMessage(goName, successFunc, user.uid);
-                } else {
-                    SendMessage(goName, failureFunc, "Unknown registration error.");
-                }
-            })
-            .catch(function(error) {
-                // Error: Devuelve el mensaje de error a Unity
-                SendMessage(goName, failureFunc, error.message);
-            });
-    },
+        firebaseAuthService.register(email, password)
+            .then(user => {
+                var userData = JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || ""
+                });
+                // Llama a la función de éxito en C#
+                unityInstance.SendMessage(objectName, successCallback, userData);
+            })
+            .catch(error => {
+                var errorMessage = "Firebase Register Error: " + error.message;
+                // Llama a la función de error en C#
+                unityInstance.SendMessage(objectName, errorCallback, errorMessage);
+            });
+    },
 
-    // Función de Inicio de Sesión
-    SignInUser: function (email, password, gameObjectName, successCallback, failureCallback) {
-        // --- CORRECCIÓN CLAVE ---
-        // Usa UTF8ToString() en lugar de Pointer_stringify()
-        var emailStr = UTF8ToString(email);
-        var passwordStr = UTF8ToString(password);
-        var goName = UTF8ToString(gameObjectName);
-        var successFunc = UTF8ToString(successCallback);
-        var failureFunc = UTF8ToString(failureCallback);
-        // -------------------------
+    SignInUser: function (emailPtr, passwordPtr, objectNamePtr, successCallbackPtr, errorCallbackPtr) {
+        var email = UTF8ToString(emailPtr);
+        var password = UTF8ToString(passwordPtr);
+        var objectName = UTF8ToString(objectNamePtr);
+        var successCallback = UTF8ToString(successCallbackPtr);
+        var errorCallback = UTF8ToString(errorCallbackPtr);
+        
+        // Verifica si el servicio de Firebase está disponible
+        if (typeof firebaseAuthService === 'undefined') {
+            var errorMessage = "Error JS: firebaseAuthService is not defined in the HTML/JS setup.";
+            unityInstance.SendMessage(objectName, errorCallback, errorMessage);
+            return;
+        }
 
-        // Asegúrate de que window.firebaseAuthService esté disponible
-        if (typeof window.firebaseAuthService === 'undefined') {
-            SendMessage(goName, failureFunc, "Error JS: firebaseAuthService is not defined in the HTML/JS setup.");
-            return;
-        }
+        firebaseAuthService.signIn(email, password)
+            .then(user => {
+                var userData = JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || ""
+                });
+                // Llama a la función de éxito en C#
+                unityInstance.SendMessage(objectName, successCallback, userData);
+            })
+            .catch(error => {
+                var errorMessage = "Firebase Sign In Error: " + error.message;
+                unityInstance.SendMessage(objectName, errorCallback, errorMessage);
+            });
+    },
 
-        // Llama a la función de Firebase Auth
-        window.firebaseAuthService.signIn(emailStr, passwordStr)
-            .then(function(user) {
-                // Éxito: Devuelve el UID del usuario a Unity
-                if (user && user.uid) {
-                    SendMessage(goName, successFunc, user.uid);
-                } else {
-                    SendMessage(goName, failureFunc, "Unknown sign-in error.");
-                }
-            })
-            .catch(function(error) {
-                // Error: Devuelve el mensaje de error a Unity
-                SendMessage(goName, failureFunc, error.message);
-            });
-    }
+    // -------------------------------------------------------------------
+    // NUEVA FUNCIÓN: Cerrar Sesión (SignOutUser)
+    // La implementación debe estar aquí para que el linker la encuentre.
+    // -------------------------------------------------------------------
+    SignOutUser: function () {
+        // Asumimos que la variable 'auth' de Firebase se ha asignado al objeto global 'window' en index.html
+        var authInstance = window.auth || firebase.auth(); 
+
+        if (authInstance) {
+            console.log("JSLIB: Ejecutando SignOutUser() de Firebase...");
+            
+            authInstance.signOut()
+                .then(function() {
+                    console.log("JSLIB: Sesión de Firebase cerrada exitosamente.");
+                })
+                .catch(function(error) {
+                    console.error("JSLIB Error al cerrar sesión:", error.message);
+                });
+        } else {
+            console.error("JSLIB Error: El objeto Auth de Firebase no está disponible.");
+        }
+    }
 });

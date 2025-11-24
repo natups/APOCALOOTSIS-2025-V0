@@ -1,73 +1,78 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Script encargado de actualizar la interfaz de usuario del menú principal 
-/// en función del estado de la sesión (logeado/no logeado).
-/// </summary>
 public class MainMenuUI : MonoBehaviour
 {
-    // ==============================================================
-    // ESTOS SON LOS CAMPOS PÚBLICOS QUE APARECEN EN EL INSPECTOR
-    // ==============================================================
-    [Header("UI Elements (Botones Login/Register)")]
-    public GameObject loginButton; 
-    public GameObject registerButton; 
-    
-    [Header("UI Elements (Usuario Registrado)")]
-    public GameObject logoutButton;
-    // ==============================================================
-    
-    void Start()
+    // Singleton local para permitir que AuthController acceda a esta instancia.
+    public static MainMenuUI Instance { get; private set; }
+
+    [Header("Botones de Autenticación")]
+    public Button LoginBtn;
+    public Button RegisterBtn;
+    public Button LogOutBtn;
+
+    void Awake()
     {
-        // Al iniciar la escena, actualizamos el estado de la UI
-        UpdateUIForAuthStatus();
+        // Establecer la instancia tan pronto como se cargue el objeto.
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            // Opcional: Esto ayuda si tienes varios MainMenuUI por error.
+            // Destroy(gameObject); 
+        }
     }
 
-    /// <summary>
-    /// CLAVE: Actualiza la UI para ocultar/mostrar elementos dependiendo del estado de la sesión.
-    /// Esta función es llamada desde el AuthController cuando hay un cambio de escena.
-    /// </summary>
-    public void UpdateUIForAuthStatus()
+    void Start()
     {
-        // 1. Preguntamos al AuthController por el estado de la sesión
-        // Es CLAVE que el AuthController sea Singleton y Persistente para que exista aquí.
-        bool isLoggedIn = AuthController.IsLoggedIn(); 
-
-        // 2. Ocultar/Mostrar botones de autenticación (Login/Register)
-        if (loginButton != null)
+        // Aseguramos que el estado del UI sea correcto al inicio.
+        UpdateUIForAuthStatus();
+        
+        // Configuramos el listener del botón Logout
+        if (LogOutBtn != null)
         {
-            loginButton.SetActive(!isLoggedIn);
-        }
-        if (registerButton != null)
-        {
-            registerButton.SetActive(!isLoggedIn);
-        }
-
-        // 3. Mostrar/Ocultar botón de Cerrar Sesión (LogOutBtn)
-        if (logoutButton != null)
-        {
-            logoutButton.SetActive(isLoggedIn);
+            LogOutBtn.onClick.RemoveAllListeners(); 
             
-            if (isLoggedIn)
+            AuthController authControllerInstance = AuthController.Instance;
+            
+            if (authControllerInstance != null)
             {
-                // Solo si el usuario está logeado, asignamos el evento al botón de Logout
-                Button btn = logoutButton.GetComponent<Button>();
-                if (btn != null)
-                {
-                    btn.onClick.RemoveAllListeners(); 
-                    
-                    // Buscamos la única instancia del AuthController
-                    AuthController authControllerInstance = AuthController.Instance;
-                    if (authControllerInstance != null)
-                    {
-                        // Agregamos el listener para llamar a la función Logout
-                        btn.onClick.AddListener(authControllerInstance.Logout); 
-                    }
-                }
+                // Vinculamos el botón a la función Logout del controlador
+                LogOutBtn.onClick.AddListener(authControllerInstance.Logout);
+            }
+            else
+            {
+                Debug.LogError("MainMenuUI: No se encontró la instancia de AuthController para vincular el botón Logout.");
             }
         }
-        
-        Debug.Log($"MainMenuUI: Estado de sesión: {(isLoggedIn ? "Iniciada" : "Cerrada")}. UI actualizada.");
+    }
+
+    // Se llama cuando la escena se descarga (buena práctica)
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
+    // Función para actualizar la visibilidad de los botones
+    public void UpdateUIForAuthStatus()
+    {
+        // Obtenemos el estado de autenticación del controlador.
+        bool isLoggedIn = AuthController.IsLoggedIn; 
+
+        // Mostrar/Ocultar botones de Login y Register
+        if (LoginBtn != null) 
+            LoginBtn.gameObject.SetActive(!isLoggedIn);
+
+        if (RegisterBtn != null) 
+            RegisterBtn.gameObject.SetActive(!isLoggedIn);
+
+        // Mostrar/Ocultar botón de Logout
+        if (LogOutBtn != null) 
+            LogOutBtn.gameObject.SetActive(isLoggedIn);
     }
 }
