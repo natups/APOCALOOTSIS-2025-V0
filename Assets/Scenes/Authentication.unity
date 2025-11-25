@@ -288,7 +288,10 @@ MonoBehaviour:
   registerPanel: {fileID: 567149119}
   loginEmailInputObject: {fileID: 389007702}
   loginPasswordInputObject: {fileID: 1410626822}
-  statusText: {fileID: 1621388666}
+  loginStatusText: {fileID: 474765136}
+  registerEmailInputObject: {fileID: 1832581527}
+  registerPasswordInputObject: {fileID: 1573728173}
+  registerStatusText: {fileID: 1621388666}
 --- !u!4 &60320864
 Transform:
   m_ObjectHideFlags: 0
