@@ -1,18 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI; 
-using TMPro;
+using TMPro; // Necesario para usar TextMeshProUGUI
 
 public class GameTimer : MonoBehaviour
 {
     [Header("Configuración del Tiempo")]
     public float tiempoTotal = 60f;
     private float tiempoInicio;
-    private float tiempoTranscurrido; // Se declara aquí para que sea accesible
+    private float tiempoTranscurrido; 
 
     [Header("Referencias de UI")]
     public Canvas canvasPuntuacionJuego; // Canvas con el contador "0/5"
     public Image panelOscuridad;         // Panel Image que se vuelve negro
     public GameObject panelResultadoFinal; // GameObject que contiene la imagen de corazones y el texto
+
+    [Header("Visualización del Timer")]
+    // **NUEVA REFERENCIA:** Asigna tu objeto TextMeshProUGUI aquí en el Inspector
+    public TextMeshProUGUI textoTimer; 
 
     private bool juegoTerminado = false;
 
@@ -23,8 +27,6 @@ public class GameTimer : MonoBehaviour
         {
             panelResultadoFinal.SetActive(false);
         }
-
-        // El Canvas de puntuación del juego queda visible por defecto
 
         // Asegurarse de que el panel de oscuridad esté transparente
         if (panelOscuridad != null)
@@ -40,15 +42,31 @@ public class GameTimer : MonoBehaviour
     {
         if (juegoTerminado) return;
 
-        // Calcula el tiempo transcurrido (ya declarada arriba)
+        // Calcula el tiempo transcurrido
         tiempoTranscurrido = Time.time - tiempoInicio;
 
+        // **CÁLCULO DEL TIEMPO RESTANTE**
+        float tiempoRestante = tiempoTotal - tiempoTranscurrido;
+        // Aseguramos que el tiempo restante nunca sea negativo
+        tiempoRestante = Mathf.Max(0f, tiempoRestante); 
+
+        // **ACTUALIZACIÓN DEL TEXTO EN PANTALLA**
+        if (textoTimer != null)
+        {
+            // Convierte los segundos restantes a formato "MM:SS" (Minutos:Segundos)
+            int minutos = Mathf.FloorToInt(tiempoRestante / 60);
+            int segundos = Mathf.FloorToInt(tiempoRestante % 60);
+            textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+        }
+
         // --- LÓGICA DE OSCURIDAD ---
+        // 't' es la proporción de tiempo transcurrido (de 0.0 a 1.0)
         float t = tiempoTranscurrido / tiempoTotal;
-        t = Mathf.Clamp01(t); 
+        t = Mathf.Clamp01(t); // Asegura que esté entre 0 y 1
 
         if (panelOscuridad != null)
         {
+            // El componente alfa (t) controla la opacidad, volviéndose más oscuro a medida que 't' aumenta
             panelOscuridad.color = new Color(0, 0, 0, t);
         }
 
@@ -75,22 +93,27 @@ public class GameTimer : MonoBehaviour
             canvasPuntuacionJuego.gameObject.SetActive(false); 
         }
 
-        // 3. Mostrar el PanelResultadoFinal completo (con corazones y texto)
+        // Ocultar el texto del timer al finalizar
+         if (textoTimer != null) 
+        {
+            textoTimer.gameObject.SetActive(false); 
+        }
+
+        // 3. Mostrar el PanelResultadoFinal
         if (panelResultadoFinal != null)
         {
             panelResultadoFinal.SetActive(true);
             
             // 4. Actualizar el texto del resultado (usando la variable estática)
-            // Esto asume que el TextMeshPro está como hijo del PanelResultadoFinal
             TextMeshProUGUI textoFinal = panelResultadoFinal.GetComponentInChildren<TextMeshProUGUI>();
             if (textoFinal != null)
             {
-                 // Usamos la variable estática de ZonaDeEntrega
+                 // Nota: Esto asume que tienes acceso a la clase ZonaDeEntrega
                  textoFinal.text = "Recolectaron " + ZonaDeEntrega.aciertosFinales + "/5 Objetos";
             }
         }
         
-        // 5. Pausar el juego (detiene el movimiento y la música de juego)
+        // 5. Pausar el juego 
         Time.timeScale = 0f;
     }
 }
