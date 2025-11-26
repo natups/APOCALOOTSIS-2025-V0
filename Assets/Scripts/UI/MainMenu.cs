@@ -106,6 +106,11 @@ public class MainMenu : MonoBehaviour
     {
         SceneManager.LoadScene("Settings");
     }
+
+    public void OpenControls()
+    {
+        SceneManager.LoadScene("Controls");
+    }
     
     public void QuitGame()
     {
@@ -113,17 +118,4 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
-    // --- MÉTODOS DE PANELES (Controles) ---
-
-    public void AbrirControles()
-    {
-        if(panelMenuPrincipal != null) panelMenuPrincipal.SetActive(false);
-        if(panelControles != null) panelControles.SetActive(true);
-    }
-
-    public void CerrarControles()
-    {
-        if(panelControles != null) panelControles.SetActive(false);
-        if(panelMenuPrincipal != null) panelMenuPrincipal.SetActive(true);
-    }
 }
