@@ -11,17 +11,17 @@ public class ZonaDeEntrega : MonoBehaviour
 
     [Header("Configuración de la Zona")]
     public int capacidadMaxima = 5; 
-    public int cantidadObjetivos = 5; 
+    public int cantidadObjetivos = 5; // Cantidad de objetivos para ganar (en VERSUS) o completar la misión (en COOP)
 
     [Header("Visualización UI")]
-    public TextMeshProUGUI textoAciertos; 
+    public TextMeshProUGUI textoAciertos; // Usado en COOP
     public TextMeshProUGUI textoTotal; 
-    public TextMeshProUGUI p1ScoreText; 
-    public TextMeshProUGUI p2ScoreText; 
+    public TextMeshProUGUI p1ScoreText; // Usado en VERSUS (P1: X / Y)
+    public TextMeshProUGUI p2ScoreText; // Usado en VERSUS (P2: X / Y)
 
     [Header("Referencias de Juego")]
     [SerializeField] private GameTimer gameTimer; 
-
+    
     [Header("Lista de Objetivos")]
     [HideInInspector] public HashSet<GameObject> objetosObjetivoActuales = new HashSet<GameObject>(); 
     
@@ -32,10 +32,10 @@ public class ZonaDeEntrega : MonoBehaviour
     private List<GameObject> objetosEnZona = new List<GameObject>(); 
     public int player1Count = 0; 
     public int player2Count = 0; 
-    public bool coopGame = true; 
+    public bool coopGame = true; // Define si es modo COOP (true) o VERSUS (false)
     
     // Referencias para la pantalla final (End Screen)
-    [SerializeField] private GameObject endScreenUI; // Panel que se activa al final
+    [SerializeField] private GameObject endScreenUI; 
     [SerializeField] private TMP_Text player1TextoFinal;
     [SerializeField] private TMP_Text player2TextoFinal;
     [SerializeField] private TMP_Text whoWins;
@@ -53,7 +53,6 @@ public class ZonaDeEntrega : MonoBehaviour
         ActualizarUI();
     }
 
-    // Esta función se activa AUTOMÁTICAMENTE cuando un collider se activa dentro de la zona
     private void OnTriggerEnter2D(Collider2D other)
     {
         int playerID = 0;
@@ -73,7 +72,6 @@ public class ZonaDeEntrega : MonoBehaviour
         }
     }
 
-    // Método central para procesar la entrega de un objeto
     private void EvaluarObjetoEntregado(GameObject objetoSostenido, int playerID)
     {
         if (objetoSostenido == null || objetosEnZona.Contains(objetoSostenido))
@@ -94,7 +92,6 @@ public class ZonaDeEntrega : MonoBehaviour
         {
             if (coopGame && gameTimer != null)
             {
-                // Penalización de tiempo en COOP
                 gameTimer.AplicarPenalizacion(penalizacionTiempo); 
             }
             
@@ -107,20 +104,31 @@ public class ZonaDeEntrega : MonoBehaviour
         objetoSostenido.SetActive(false);
         ActualizarUI();
 
-        // Verificar la condición de victoria COOP
+        // 1. Lógica de victoria COOP (Total de aciertos)
         if (coopGame)
         {
             totalCount = player1Count + player2Count;
-            if (aciertosFinales >= objetosObjetivoActuales.Count && gameTimer != null)
+            if (aciertosFinales >= cantidadObjetivos && gameTimer != null)
             {
                 Debug.Log("¡Victoria COOP! Misión Cumplida.");
                 gameTimer.TerminarPartida(); 
                 SendEndScreen();
             }
         } 
+        // 2. Lógica de victoria VERSUS (Gana el primero que alcanza la meta)
         else 
         {
-            // Lógica de victoria VERSUS
+            if (player1Count >= cantidadObjetivos || player2Count >= cantidadObjetivos)
+            {
+                Debug.Log("¡Victoria VERSUS! Un jugador alcanzó la meta.");
+                
+                // Detenemos el timer, aunque la victoria no haya sido por tiempo.
+                if (gameTimer != null)
+                {
+                    gameTimer.TerminarPartida(); 
+                }
+                SendEndScreen();
+            }
         }
     }
 
@@ -141,65 +149,78 @@ public class ZonaDeEntrega : MonoBehaviour
         // Actualización de la UI basada en el modo
         if (coopGame)
         {
+             // UI COOP: Muestra el total de aciertos de ambos jugadores
              if (textoAciertos != null)
              {
                  textoAciertos.text = "Objetivos: " + aciertosFinales + " / " + cantidadObjetivos;
              }
              if (textoTotal != null) textoTotal.text = ""; 
+             
+             // Ocultar o limpiar UI de Versus
+             if (p1ScoreText != null) p1ScoreText.text = ""; 
+             if (p2ScoreText != null) p2ScoreText.text = "";
         }
         else // Modo VERSUS
         {
-             if (p1ScoreText != null) p1ScoreText.text = "P1: " + player1Count.ToString();
-             if (p2ScoreText != null) p2ScoreText.text = "P2: " + player2Count.ToString();
+             // UI VERSUS: Muestra el progreso individual (X / Y)
+             if (p1ScoreText != null) p1ScoreText.text = $"P1: {player1Count} / {cantidadObjetivos}";
+             if (p2ScoreText != null) p2ScoreText.text = $"P2: {player2Count} / {cantidadObjetivos}";
+             
+             // Ocultar o limpiar UI de COOP
              if (textoAciertos != null) textoAciertos.text = ""; 
+             if (textoTotal != null) textoTotal.text = ""; 
         }
     }
     
-    // Método para mostrar la pantalla final (CORRECCIÓN DEL ERROR CRÍTICO)
+    // Método para mostrar la pantalla final
     public void SendEndScreen()
     {
-        // VERIFICACIÓN CRÍTICA: Si el panel final no está asignado, salimos para evitar el crasheo.
         if (endScreenUI == null)
         {
-            Debug.LogError("ERROR CRÍTICO: endScreenUI no está asignado en ZonaDeEntrega. ¡Asígnalo en el Inspector!");
+            Debug.LogError("ERROR: endScreenUI no está asignado en ZonaDeEntrega.");
             return; 
         }
 
+        string ganadorTexto = "Empate!";
         if (!coopGame)
         {
-            // Modo VERSUS
-            // Verificamos si los Textos están asignados antes de usarlos
-            if (player1TextoFinal != null) player1TextoFinal.text = player1Count.ToString();
-            if (player2TextoFinal != null) player2TextoFinal.text = player2Count.ToString();
-            
-            if (player1Count > player2Count)
+            // Modo VERSUS: Determinar el ganador
+            if (player1Count >= cantidadObjetivos)
             {
-                if (whoWins != null) whoWins.text = "Jugador 1 Gana!";
+                ganadorTexto = "¡Jugador 1 Gana!";
+            }
+            else if (player2Count >= cantidadObjetivos)
+            {
+                ganadorTexto = "¡Jugador 2 Gana!";
+            }
+            // Si el juego terminó por tiempo (aunque no debería), usamos el puntaje más alto
+            else if (player1Count > player2Count)
+            {
+                 ganadorTexto = "¡Jugador 1 Gana!";
             }
             else if (player2Count > player1Count)
             {
-                if (whoWins != null) whoWins.text = "Jugador 2 Gana!";
+                 ganadorTexto = "¡Jugador 2 Gana!";
             }
-            else
-            {
-                if (whoWins != null) whoWins.text = "Empate!";
-            }
-
-            endScreenUI.SetActive(true); // Mostrar la pantalla final (La línea que antes causaba el error 186)
-        } else {
-            // Modo COOP
-            if (player1TextoFinal != null) player1TextoFinal.text = aciertosFinales.ToString() + " / " + cantidadObjetivos;
             
+            if (player1TextoFinal != null) player1TextoFinal.text = player1Count.ToString();
+            if (player2TextoFinal != null) player2TextoFinal.text = player2Count.ToString();
+        } 
+        else 
+        {
+            // Modo COOP: Mostrar aciertos y estado de la misión
+            if (player1TextoFinal != null) player1TextoFinal.text = aciertosFinales.ToString() + " / " + cantidadObjetivos;
             if (player2TextoFinal != null) player2TextoFinal.gameObject.SetActive(false); 
             
             if (aciertosFinales >= cantidadObjetivos)
             {
-                if (whoWins != null) whoWins.text = "¡Misión Cumplida!";
+                ganadorTexto = "¡Misión Cumplida!";
             } else {
-                if (whoWins != null) whoWins.text = "¡Tiempo Agotado!"; 
+                ganadorTexto = "¡Tiempo Agotado!"; 
             }
-            
-            endScreenUI.SetActive(true);
         }
+        
+        if (whoWins != null) whoWins.text = ganadorTexto;
+        endScreenUI.SetActive(true);
     }
 }

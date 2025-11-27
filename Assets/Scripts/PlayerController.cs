@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections; 
-using TMPro; // Necesario para manejar el contador de texto de las botellas
+using TMPro; 
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
@@ -11,17 +11,18 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 3f;
     public float runSpeed = 6f;
     
-    // --- VARIABLES AÑADIDAS PARA LAS NUEVAS FUNCIONALIDADES ---
-    private float baseWalkSpeed; // Guarda la velocidad original de caminar para restaurarla
+    // --- VARIABLES DE RALENTIZACIÓN/SABOTAJE ---
+    private float baseWalkSpeed; 
     
     [Header("Lógica de Ralentización")]
-    public bool isSlowed = false; // Bandera CRÍTICA: Bloquea la carrera si es 'true'
-    private Color originalColor; // Guarda el color original del sprite
+    public bool isSlowed = false; 
+    private Color originalColor; 
     
     [Header("Límite de Sabotaje")]
-    public int maxBottles = 3; // Número máximo de botellas que puede lanzar
-    private int bottlesRemaining; // Contador de botellas restantes
-    public TextMeshProUGUI bottleCounterText; // Referencia al texto de la UI (¡Asignar en Inspector!)
+    public int maxBottles = 3; 
+    private int bottlesRemaining; 
+    // CRÍTICO: Esta es la referencia del texto individual para P1 o P2
+    public TextMeshProUGUI bottleCounterText; 
     
     // --- RESTO DE VARIABLES EXISTENTES ---
     [Header("Controles (Inspector)")]
@@ -63,15 +64,15 @@ public class PlayerController : MonoBehaviour
         playerAnimator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>(); 
         
-        // --- INICIALIZACIÓN DE VARIABLES DE SABOTAJE ---
-        baseWalkSpeed = walkSpeed; // Guarda la velocidad base
-        bottlesRemaining = maxBottles; // Setea el límite inicial (3)
+        // --- INICIALIZACIÓN ---
+        baseWalkSpeed = walkSpeed; 
+        bottlesRemaining = maxBottles; 
         
         if (spriteRenderer != null)
         {
-            originalColor = spriteRenderer.color; // Guarda el color original del jugador
+            originalColor = spriteRenderer.color; 
         }
-        UpdateBottleUI(); // Actualiza la UI para mostrar "x3" al inicio
+        UpdateBottleUI(); // Muestra "x3" al inicio
         // --- FIN INICIALIZACIÓN ---
 
         if (holdParent == null)
@@ -97,7 +98,7 @@ public class PlayerController : MonoBehaviour
             
             movement = movement.normalized; 
             
-            // CRÍTICO: SÓLO puede esprintar si pulsa la tecla Y NO está ralentizado.
+            // Bloquea sprint si está ralentizado
             isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
         }
 
@@ -147,7 +148,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
-        // El 'currentSpeed' respeta la ralentización o el sprint (si no está lento)
         float currentSpeed = (isSprinting && !isHolding) ? runSpeed : walkSpeed;
         Vector2 newVelocity = movement * currentSpeed;
         rb.linearVelocity = newVelocity;
@@ -228,11 +228,11 @@ public class PlayerController : MonoBehaviour
     // --- FUNCIÓN DE ARROJAR BOTELLA (Sabotaje - Versus) ---
     void ThrowObject()
     {
-        // 1. Verificar el límite antes de lanzar
+        // 1. Verificar el límite
         if (bottlesRemaining <= 0)
         {
             Debug.Log("Límite de botellas alcanzado.");
-            return; // No lanza la botella si el contador es 0
+            return; 
         }
         
         if (botellaPrefab == null)
@@ -241,7 +241,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Si llevamos algo, lo soltamos antes de lanzar la botella de sabotaje
         if (isHolding)
         {
              DropObject(); 
@@ -249,7 +248,7 @@ public class PlayerController : MonoBehaviour
         
         // 2. Disminuir el contador y actualizar la UI
         bottlesRemaining--;
-        UpdateBottleUI();
+        UpdateBottleUI(); // Llama a la función que actualiza el texto de P1 o P2
 
         // 3. Instanciar y lanzar la botella
         GameObject bottleInstance = Instantiate(botellaPrefab, transform.position + (Vector3)lastMoveDirection * 0.5f, Quaternion.identity);
@@ -307,45 +306,38 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO (USADA POR WaterPuddle.cs) ---
-    
-    // Función llamada desde WaterPuddle.cs. Inicia el efecto de ralentización.
+    // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO ---
     public void ApplySlow(float factor)
     {
-        // Detiene el efecto anterior (por si pisa otro charco) y comienza uno nuevo.
         StopCoroutine("SlowRoutine");
         StartCoroutine("SlowRoutine", factor);
     }
 
     private IEnumerator SlowRoutine(float factor)
     {
-        float duration = 5f; // Duración fija de 5 segundos
-        isSlowed = true; // Activa la bandera para bloquear la carrera
+        float duration = 5f; 
+        isSlowed = true; 
         
-        // Aplica el nuevo 'walkSpeed' (ej: 3 * 0.5 = 1.5)
         float originalWalkSpeed = baseWalkSpeed; 
         walkSpeed = originalWalkSpeed * factor;
         
-        // --- Efecto Visual de Parpadeo Rojo ---
-        float blinkDuration = 0.15f; // Velocidad de parpadeo
+        float blinkDuration = 0.15f; 
         float timeElapsed = 0f;
 
-        while (timeElapsed < duration) // El bucle se repite por 5 segundos
+        while (timeElapsed < duration) 
         {
-            spriteRenderer.color = Color.red; // Se pone rojo
+            spriteRenderer.color = Color.red; 
             yield return new WaitForSeconds(blinkDuration); 
 
-            spriteRenderer.color = originalColor; // Vuelve a su color original
+            spriteRenderer.color = originalColor; 
             yield return new WaitForSeconds(blinkDuration);
 
-            timeElapsed += (blinkDuration * 2); // Acumula el tiempo del ciclo (0.3s)
+            timeElapsed += (blinkDuration * 2); 
         }
-        // --- Fin del Efecto Visual ---
 
-        // Restaurar la velocidad y el estado
-        walkSpeed = originalWalkSpeed; // Restaura la velocidad de caminar
-        isSlowed = false; // Desbloquea la carrera
-        spriteRenderer.color = originalColor; // Asegura que el color final sea el original
+        walkSpeed = originalWalkSpeed; 
+        isSlowed = false; 
+        spriteRenderer.color = originalColor; 
 
         Debug.Log($"Velocidad de {gameObject.name} restaurada.");
     }
