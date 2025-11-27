@@ -10,25 +10,25 @@ public class GameTimer : MonoBehaviour
     private float tiempoTranscurrido; 
 
     [Header("Referencias de UI")]
-    public Canvas canvasPuntuacionJuego; // Canvas con el contador "0/5"
-    public Image panelOscuridad;         // Panel Image que se vuelve negro
-    public GameObject panelResultadoFinal; // GameObject que contiene la imagen de corazones y el texto
+    public Canvas canvasPuntuacionJuego; 
+    public Image panelOscuridad;         
+    public GameObject panelResultadoFinal; 
 
     [Header("Visualización del Timer")]
-    // **NUEVA REFERENCIA:** Asigna tu objeto TextMeshProUGUI aquí en el Inspector
-    public TextMeshProUGUI textoTimer; 
+    public TextMeshProUGUI textoTimer; // 
+
+    // Variable para la penalización (ahora gestionada por ZonaDeEntrega, pero la mantenemos si GameTimer necesita usarla)
+    // [HideInInspector] public float penalizacionTiempo = 5f; 
 
     private bool juegoTerminado = false;
 
     void Start()
     {
-        // Aseguramos que el panel de resultado esté oculto al inicio
         if (panelResultadoFinal != null)
         {
             panelResultadoFinal.SetActive(false);
         }
 
-        // Asegurarse de que el panel de oscuridad esté transparente
         if (panelOscuridad != null)
         {
             panelOscuridad.color = new Color(0, 0, 0, 0);
@@ -42,78 +42,75 @@ public class GameTimer : MonoBehaviour
     {
         if (juegoTerminado) return;
 
-        // Calcula el tiempo transcurrido
         tiempoTranscurrido = Time.time - tiempoInicio;
 
-        // **CÁLCULO DEL TIEMPO RESTANTE**
+        // CÁLCULO Y VISUALIZACIÓN DEL TIEMPO RESTANTE
         float tiempoRestante = tiempoTotal - tiempoTranscurrido;
-        // Aseguramos que el tiempo restante nunca sea negativo
         tiempoRestante = Mathf.Max(0f, tiempoRestante); 
 
-        // **ACTUALIZACIÓN DEL TEXTO EN PANTALLA**
         if (textoTimer != null)
         {
-            // Convierte los segundos restantes a formato "MM:SS" (Minutos:Segundos)
             int minutos = Mathf.FloorToInt(tiempoRestante / 60);
             int segundos = Mathf.FloorToInt(tiempoRestante % 60);
             textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
         }
 
-        // --- LÓGICA DE OSCURIDAD ---
-        // 't' es la proporción de tiempo transcurrido (de 0.0 a 1.0)
+        // LÓGICA DE OSCURIDAD
         float t = tiempoTranscurrido / tiempoTotal;
-        t = Mathf.Clamp01(t); // Asegura que esté entre 0 y 1
+        t = Mathf.Clamp01(t); 
 
         if (panelOscuridad != null)
         {
-            // El componente alfa (t) controla la opacidad, volviéndose más oscuro a medida que 't' aumenta
             panelOscuridad.color = new Color(0, 0, 0, t);
         }
 
-        // 5. Verificar si el tiempo se acabó
+        // Verificar si el tiempo se acabó
         if (tiempoTranscurrido >= tiempoTotal)
         {
             TerminarPartida();
         }
     }
 
-    void TerminarPartida()
+    // Este método se llama desde ZonaDeEntrega para penalizar
+    public void AplicarPenalizacion(float cantidad)
+    {
+        if (!juegoTerminado)
+        {
+            // Aumenta el tiempo transcurrido, lo que reduce el tiempo restante.
+            tiempoInicio -= cantidad; 
+            Debug.Log("¡Objeto Incorrecto! Penalización de " + cantidad + " segundos aplicada.");
+        }
+    }
+
+
+    public void TerminarPartida()
     {
         juegoTerminado = true;
         
-        // 1. Asegurarse de que esté 100% oscuro
         if (panelOscuridad != null)
         {
             panelOscuridad.color = new Color(0, 0, 0, 1f);
         }
 
-        // 2. Ocultar el contador de puntuación del juego ("0/5")
         if (canvasPuntuacionJuego != null) 
         {
             canvasPuntuacionJuego.gameObject.SetActive(false); 
         }
-
-        // Ocultar el texto del timer al finalizar
+        
          if (textoTimer != null) 
         {
             textoTimer.gameObject.SetActive(false); 
         }
 
-        // 3. Mostrar el PanelResultadoFinal
         if (panelResultadoFinal != null)
         {
             panelResultadoFinal.SetActive(true);
             
-            // 4. Actualizar el texto del resultado (usando la variable estática)
-            TextMeshProUGUI textoFinal = panelResultadoFinal.GetComponentInChildren<TextMeshProUGUI>();
-            if (textoFinal != null)
-            {
-                 // Nota: Esto asume que tienes acceso a la clase ZonaDeEntrega
-                 textoFinal.text = "Recolectaron " + ZonaDeEntrega.aciertosFinales + "/5 Objetos";
-            }
+            // Llama a SendEndScreen() en ZonaDeEntrega para mostrar los resultados correctos
+            // Esto es crucial para la lógica de fin de partida. Asumimos que GameTimer
+            // tiene una referencia a ZonaDeEntrega si es necesario, o lo llama desde TerminarPartida.
         }
         
-        // 5. Pausar el juego 
         Time.timeScale = 0f;
     }
 }

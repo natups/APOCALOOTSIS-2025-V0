@@ -2,11 +2,15 @@ using UnityEngine;
 
 public class ThrownObject : MonoBehaviour
 {
-    // El Rigidbody del objeto
-    private Rigidbody2D rb;
+    // Variables públicas añadidas para las referencias en el Inspector
+    [Header("Sabotaje")]
+    public GameObject charcoPrefab;      
+    public GameObject botellaRotaPrefab; 
+    public float roturaDuration = 0.5f; // Duración del efecto visual
+
+    public GameObject owner; // El jugador que lanzó el objeto
     
-    // El jugador que lanzó este objeto (para evitar golpearse a sí mismo)
-    public GameObject owner; 
+    private Rigidbody2D rb;
 
     void Awake()
     {
@@ -15,30 +19,39 @@ public class ThrownObject : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // 1. Revisa si chocamos con el jugador que nos lanzó. Si es así, no hacemos nada.
+        // 1. Evitar golpearse a sí mismo
         if (collision.gameObject == owner)
         {
             return;
         }
 
-        // 2. Revisa si chocamos con CUALQUIER jugador (que tenga el script PlayerController)
+        // --- 2. LÓGICA DE IMPACTO ---
+        
         PlayerController hitPlayer = collision.gameObject.GetComponent<PlayerController>();
         
-        if (hitPlayer != null)
+        // Si golpeamos a alguien o algo, creamos el Charco y el efecto de Botella Rota
+        if (charcoPrefab != null)
         {
-            // ¡Golpeamos a un jugador! Llamamos a su función pública para aturdirlo
-            hitPlayer.GetHit();
+            // Instancia el charco en el punto de impacto
+            Vector2 impactPoint = collision.GetContact(0).point; 
+            Instantiate(charcoPrefab, impactPoint, Quaternion.identity);
+            
+            // Si golpeamos a un jugador, podemos aturdirlo ligeramente (opcional)
+            if (hitPlayer != null)
+            {
+                 // hitPlayer.GetHit(); 
+            }
+        }
+        
+        // 3. EFECTO VISUAL DE ROMPERSE (Autodestrucción integrada)
+        if (botellaRotaPrefab != null)
+        {
+             GameObject brokenBottleFX = Instantiate(botellaRotaPrefab, transform.position, Quaternion.identity);
+             // Autodestrucción después de un tiempo corto
+             Destroy(brokenBottleFX, roturaDuration); 
         }
 
-        // 3. Después de chocar con CUALQUIER cosa (un jugador, una pared, etc.)
-        // nos detenemos y volvemos a ser un objeto normal "no empujable".
-        if (rb != null)
-        {
-            rb.bodyType = RigidbodyType2D.Kinematic; // Vuelve a ser Kinematic
-            rb.linearVelocity = Vector2.zero; // Detiene todo movimiento
-        }
-
-        // 4. Finalmente, destruimos este script para que no pueda golpear de nuevo.
-        Destroy(this);
+        // 4. Destruir la botella que fue lanzada (este objeto)
+        Destroy(gameObject);
     }
 }

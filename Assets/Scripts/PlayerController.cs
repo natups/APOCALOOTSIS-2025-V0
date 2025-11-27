@@ -1,135 +1,159 @@
 using UnityEngine;
-using System.Collections; // ¡Importante! Necesario para las Corutinas
+using System.Collections; 
+using TMPro; // Necesario para manejar el contador de texto de las botellas
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
+    // --- VARIABLES DE MOVIMIENTO EXISTENTES ---
     [Header("Ajustes de Movimiento")]
     public float walkSpeed = 3f;
     public float runSpeed = 6f;
     
+    // --- VARIABLES AÑADIDAS PARA LAS NUEVAS FUNCIONALIDADES ---
+    private float baseWalkSpeed; // Guarda la velocidad original de caminar para restaurarla
+    
+    [Header("Lógica de Ralentización")]
+    public bool isSlowed = false; // Bandera CRÍTICA: Bloquea la carrera si es 'true'
+    private Color originalColor; // Guarda el color original del sprite
+    
+    [Header("Límite de Sabotaje")]
+    public int maxBottles = 3; // Número máximo de botellas que puede lanzar
+    private int bottlesRemaining; // Contador de botellas restantes
+    public TextMeshProUGUI bottleCounterText; // Referencia al texto de la UI (¡Asignar en Inspector!)
+    
+    // --- RESTO DE VARIABLES EXISTENTES ---
     [Header("Controles (Inspector)")]
     public KeyCode upKey;
     public KeyCode downKey;
     public KeyCode leftKey;
     public KeyCode rightKey;
     public KeyCode sprintKey;
-    public KeyCode interactKey; // Tecla para agarrar/soltar
-    public KeyCode throwKey;    // ¡NUEVO! Tecla para arrojar (T o L)
-
-    [Header("Lógica de Agarre")]
-    public Transform holdParent; // El "holdPoint" hijo del jugador
-    public float throwForce = 10f;  // ¡NUEVO! Fuerza del lanzamiento
-    public float stunDuration = 0.5f; // ¡NUEVO! Duración del aturdimiento
+    public KeyCode interactKey; 
+    public KeyCode throwKey; 
     
-    public GameObject heldObject;
+    [Header("Lógica de Agarre")]
+    public Transform holdParent; 
+    public float throwForce = 10f; 
+    
+    [Header("Lógica de Sabotaje (Versus)")]
+    public GameObject botellaPrefab; 
+    public float stunDuration = 0.5f; 
+    
+    [HideInInspector] public GameObject heldObject;
     private Rigidbody2D heldObjectRB;
-    private GameObject pickableObject;
+    private GameObject pickableObject; 
 
     // Componentes
     private Rigidbody2D rb;
     private Animator playerAnimator;
-    private SpriteRenderer spriteRenderer; // ¡NUEVO! Para el flash rojo
+    private SpriteRenderer spriteRenderer; 
     private Vector2 movement;
     
     // Estados
     public bool isHolding = false;
     private bool isSprinting = false;
-    private bool canMove = true; // ¡NUEVO! Para el aturdimiento
-    private Vector2 lastMoveDirection = new Vector2(0, -1); // ¡NUEVO! Para saber dónde arrojar
+    private bool canMove = true; 
+    private Vector2 lastMoveDirection = new Vector2(0, -1); 
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         playerAnimator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>(); // ¡NUEVO! Obtenemos el SpriteRenderer
+        spriteRenderer = GetComponent<SpriteRenderer>(); 
         
+        // --- INICIALIZACIÓN DE VARIABLES DE SABOTAJE ---
+        baseWalkSpeed = walkSpeed; // Guarda la velocidad base
+        bottlesRemaining = maxBottles; // Setea el límite inicial (3)
+        
+        if (spriteRenderer != null)
+        {
+            originalColor = spriteRenderer.color; // Guarda el color original del jugador
+        }
+        UpdateBottleUI(); // Actualiza la UI para mostrar "x3" al inicio
+        // --- FIN INICIALIZACIÓN ---
+
         if (holdParent == null)
         {
-            Debug.LogError("Asigna el 'Hold Parent' (holdPoint) en el Inspector.");
+            Debug.LogError("Asigna el 'Hold Parent' (holdPoint) en el Inspector del jugador.");
         }
     }
 
     void Update()
     {
-        // Si no nos podemos mover (aturdidos), no procesamos input de movimiento
         if (!canMove)
         {
             movement = Vector2.zero;
         }
         else
         {
-            // --- 1. DETECCIÓN DE INPUT ---
+            // --- 1. DETECCIÓN DE INPUT DE MOVIMIENTO ---
             movement = Vector2.zero;
             if (Input.GetKey(upKey)) movement.y += 1f;
             if (Input.GetKey(downKey)) movement.y -= 1f;
             if (Input.GetKey(leftKey)) movement.x -= 1f;
             if (Input.GetKey(rightKey)) movement.x += 1f;
             
-            movement = movement.normalized; // Normalizar
+            movement = movement.normalized; 
             
-            // Input de Sprint
-            isSprinting = Input.GetKey(sprintKey);
+            // CRÍTICO: SÓLO puede esprintar si pulsa la tecla Y NO está ralentizado.
+            isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
         }
 
-        // --- Input de Interacción (Agarrar/Soltar) ---
-        // Solo podemos interactuar si no estamos aturdidos
+        // --- 2. Input de Interacción (Agarrar/Soltar) ---
         if (canMove && Input.GetKeyDown(interactKey))
         {
             if (isHolding)
             {
                 DropObject();
             }
-            else // Si no estás sosteniendo nada
+            else 
             {
                 playerAnimator.SetTrigger("Grab");
                 if (pickableObject != null)
                 {
-                    PickUpObject();
+                    PickUpObject(pickableObject);
                 }
             }
         }
 
-        // --- ¡NUEVO! Input de Arrojar ---
-        // Solo podemos arrojar si estamos sosteniendo algo y no estamos aturdidos
-        if (canMove && isHolding && Input.GetKeyDown(throwKey))
+        // --- 3. Input de Arrojar (Sabotaje) ---
+        if (canMove && Input.GetKeyDown(throwKey))
         {
             ThrowObject();
         }
 
-        // --- 2. ACTUALIZAR ANIMATOR ---
+        // --- 4. ACTUALIZAR ANIMATOR ---
         bool isMoving = movement.magnitude > 0.01f;
         
         playerAnimator.SetBool("IsMoving", isMoving);
         playerAnimator.SetBool("IsHolding", isHolding);
-        playerAnimator.SetFloat("Speed", isSprinting ? 1f : 0f); // 0=walk, 1=run
-
-        // Actualiza la dirección solo si nos movemos
+        playerAnimator.SetFloat("Speed", isSprinting ? 1f : 0f); 
+        
         if (isMoving)
         {
             playerAnimator.SetFloat("MoveX", movement.x);
             playerAnimator.SetFloat("MoveY", movement.y);
-            lastMoveDirection = movement; // ¡NUEVO! Guardamos la última dirección
+            lastMoveDirection = movement; 
         }
     }
 
     void FixedUpdate()
     {
-        // --- 3. MOVIMIENTO FÍSICO ---
-        // ¡NUEVO! Si no nos podemos mover, salimos de la función
         if (!canMove)
         {
-            rb.linearVelocity = Vector2.zero; // Asegura que el jugador esté quieto
+            rb.linearVelocity = Vector2.zero; 
             return;
         }
         
+        // El 'currentSpeed' respeta la ralentización o el sprint (si no está lento)
         float currentSpeed = (isSprinting && !isHolding) ? runSpeed : walkSpeed;
-        Vector2 newPos = rb.position + movement * currentSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(newPos);
+        Vector2 newVelocity = movement * currentSpeed;
+        rb.linearVelocity = newVelocity;
     }
     
-    // --- 4. LÓGICA DE DETECCIÓN (Triggers) ---
+    // --- LÓGICA DE DETECCIÓN (Triggers) ---
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Interactable"))
@@ -146,16 +170,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- 5. LÓGICA DE AGARRAR / SOLTAR / ARROJAR ---
-    void PickUpObject()
+    // --- LÓGICA DE AGARRAR / SOLTAR / ARROJAR ---
+    public void PickUpObject(GameObject obj)
     {
-        Debug.Log("Agarrando objeto..." + pickableObject.name);
-        heldObject = pickableObject;
+        heldObject = obj;
         heldObjectRB = heldObject.GetComponent<Rigidbody2D>();
 
         if (heldObjectRB != null)
         {
             heldObjectRB.bodyType = RigidbodyType2D.Kinematic;
+            heldObjectRB.linearVelocity = Vector2.zero; 
         }
 
         Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
@@ -163,15 +187,16 @@ public class PlayerController : MonoBehaviour
         {
             heldCollider.enabled = false;
         }
-
+        
         heldObject.transform.SetParent(holdParent);
-        heldObject.transform.localPosition = Vector3.zero;
+        heldObject.transform.localPosition = Vector3.zero; 
+        heldObject.transform.localRotation = Quaternion.identity;
+        
         isHolding = true;
     }
 
     public void DropObject()
     {
-        Debug.Log("Soltando objeto...");
         if (heldObject == null) return;
 
         Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
@@ -180,74 +205,158 @@ public class PlayerController : MonoBehaviour
             heldCollider.enabled = true;
         }
 
-        if (heldObjectRB != null)
+        ThrownObject projectile = heldObject.GetComponent<ThrownObject>();
+        if (projectile != null)
         {
-            heldObjectRB.bodyType = RigidbodyType2D.Kinematic; // Sigue siendo Kinematic (no empujable)
-            heldObjectRB.linearVelocity = gameObject.GetComponent<Rigidbody2D>().linearVelocity;
+            Destroy(projectile);
         }
 
-        heldObject.transform.parent.transform.position = new Vector2(transform.position.x, transform.position.y - 1f); // Lo soltamos justo debajo del jugador
         heldObject.transform.SetParent(null);
+        heldObject.transform.position = transform.position + (Vector3)lastMoveDirection * 0.5f; 
+        
+        if (heldObjectRB != null)
+        {
+            heldObjectRB.bodyType = RigidbodyType2D.Kinematic; 
+            heldObjectRB.linearVelocity = Vector2.zero;
+        }
+
         heldObject = null;
         heldObjectRB = null;
         isHolding = false;
     }
 
-    // --- ¡NUEVA FUNCIÓN DE ARROJAR! ---
+    // --- FUNCIÓN DE ARROJAR BOTELLA (Sabotaje - Versus) ---
     void ThrowObject()
     {
-        if (heldObject == null) return;
-
-        // 1. Reactivamos el collider
-        Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
-        if (heldCollider != null)
+        // 1. Verificar el límite antes de lanzar
+        if (bottlesRemaining <= 0)
         {
-            heldCollider.enabled = true;
+            Debug.Log("Límite de botellas alcanzado.");
+            return; // No lanza la botella si el contador es 0
         }
-
-        // 2. Lo soltamos
-        heldObject.transform.SetParent(null);
         
-        // 3. ¡Le añadimos el script de proyectil!
-        ThrownObject projectile = heldObject.AddComponent<ThrownObject>();
-        projectile.owner = this.gameObject; // Le decimos quién es el dueño
-
-        // 4. Lo convertimos en objeto físico y le damos fuerza
-        if (heldObjectRB != null)
+        if (botellaPrefab == null)
         {
-            heldObjectRB.bodyType = RigidbodyType2D.Dynamic; // ¡Ahora SÍ es Dinámico!
-            heldObjectRB.linearVelocity = Vector2.zero; // Reseteamos velocidad
-            heldObjectRB.AddForce(lastMoveDirection * throwForce, ForceMode2D.Impulse);
+            Debug.LogWarning("Prefab de Botella no asignado. No se puede lanzar.");
+            return;
         }
 
-        // 5. Reseteamos el estado del jugador
-        heldObject = null;
-        heldObjectRB = null;
-        isHolding = false;
+        // Si llevamos algo, lo soltamos antes de lanzar la botella de sabotaje
+        if (isHolding)
+        {
+             DropObject(); 
+        }
+        
+        // 2. Disminuir el contador y actualizar la UI
+        bottlesRemaining--;
+        UpdateBottleUI();
+
+        // 3. Instanciar y lanzar la botella
+        GameObject bottleInstance = Instantiate(botellaPrefab, transform.position + (Vector3)lastMoveDirection * 0.5f, Quaternion.identity);
+
+        // 4. Añadir/Obtener los componentes necesarios
+        Rigidbody2D bottleRB = bottleInstance.GetComponent<Rigidbody2D>();
+        ThrownObject projectile = bottleInstance.GetComponent<ThrownObject>();
+        
+        if(projectile == null)
+        {
+            projectile = bottleInstance.AddComponent<ThrownObject>();
+        }
+        
+        // 5. Configurar el proyectil
+        projectile.owner = this.gameObject; 
+
+        // 6. Aplicar fuerza de lanzamiento
+        if (bottleRB != null)
+        {
+            bottleRB.bodyType = RigidbodyType2D.Dynamic;
+            bottleRB.linearVelocity = Vector2.zero; 
+            bottleRB.AddForce(lastMoveDirection.normalized * throwForce, ForceMode2D.Impulse);
+        }
     }
 
-    // --- ¡NUEVA FUNCIÓN PÚBLICA PARA SER GOLPEADO! ---
+    // --- FUNCIÓN PÚBLICA PARA SER GOLPEADO (Ralentización por impacto) ---
     public void GetHit()
     {
-        // No podemos ser golpeados si ya estamos aturdidos
         if (canMove)
         {
             StartCoroutine(StunRoutine());
         }
     }
 
-    // --- ¡NUEVA CORUTINA DE ATURDIMIENTO! ---
+    // --- CORUTINA DE ATURDIMIENTO ---
     private IEnumerator StunRoutine()
     {
-        // 1. Aturdir y enrojecer
         canMove = false;
-        spriteRenderer.color = Color.red;
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.red;
+        }
+        
+        if (isHolding)
+        {
+             DropObject();
+        }
 
-        // 2. Esperar
-        yield return new WaitForSeconds(stunDuration); // Espera 0.5 segundos
+        yield return new WaitForSeconds(stunDuration); 
 
-        // 3. Quitar aturdimiento y volver al color normal
         canMove = true;
-        spriteRenderer.color = Color.white;
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.white;
+        }
+    }
+
+    // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO (USADA POR WaterPuddle.cs) ---
+    
+    // Función llamada desde WaterPuddle.cs. Inicia el efecto de ralentización.
+    public void ApplySlow(float factor)
+    {
+        // Detiene el efecto anterior (por si pisa otro charco) y comienza uno nuevo.
+        StopCoroutine("SlowRoutine");
+        StartCoroutine("SlowRoutine", factor);
+    }
+
+    private IEnumerator SlowRoutine(float factor)
+    {
+        float duration = 5f; // Duración fija de 5 segundos
+        isSlowed = true; // Activa la bandera para bloquear la carrera
+        
+        // Aplica el nuevo 'walkSpeed' (ej: 3 * 0.5 = 1.5)
+        float originalWalkSpeed = baseWalkSpeed; 
+        walkSpeed = originalWalkSpeed * factor;
+        
+        // --- Efecto Visual de Parpadeo Rojo ---
+        float blinkDuration = 0.15f; // Velocidad de parpadeo
+        float timeElapsed = 0f;
+
+        while (timeElapsed < duration) // El bucle se repite por 5 segundos
+        {
+            spriteRenderer.color = Color.red; // Se pone rojo
+            yield return new WaitForSeconds(blinkDuration); 
+
+            spriteRenderer.color = originalColor; // Vuelve a su color original
+            yield return new WaitForSeconds(blinkDuration);
+
+            timeElapsed += (blinkDuration * 2); // Acumula el tiempo del ciclo (0.3s)
+        }
+        // --- Fin del Efecto Visual ---
+
+        // Restaurar la velocidad y el estado
+        walkSpeed = originalWalkSpeed; // Restaura la velocidad de caminar
+        isSlowed = false; // Desbloquea la carrera
+        spriteRenderer.color = originalColor; // Asegura que el color final sea el original
+
+        Debug.Log($"Velocidad de {gameObject.name} restaurada.");
+    }
+
+    // --- FUNCIÓN PARA ACTUALIZAR LA UI DEL CONTADOR ---
+    public void UpdateBottleUI()
+    {
+        if (bottleCounterText != null)
+        {
+            // Actualiza el texto con el formato "x3", "x2", etc.
+            bottleCounterText.text = $"x{bottlesRemaining}"; 
+        }
     }
 }

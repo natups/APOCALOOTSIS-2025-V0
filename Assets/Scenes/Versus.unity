@@ -13465,6 +13465,10 @@ PrefabInstance:
       propertyPath: interactKey
       value: 101
       objectReference: {fileID: 0}
+    - target: {fileID: 8626699390396320087, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
+      propertyPath: botellaPrefab
+      value: 
+      objectReference: {fileID: 5822357867968200811, guid: 93a5e7f7b7af5564895bb6d4bde2cbf5, type: 3}
     m_RemovedComponents:
     - {fileID: 8626150641008992893, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
     m_RemovedGameObjects: []
@@ -13585,6 +13589,10 @@ PrefabInstance:
       propertyPath: interactKey
       value: 106
       objectReference: {fileID: 0}
+    - target: {fileID: 9070451121435561278, guid: 2f93706ebce16084bba2961ba52e5708, type: 3}
+      propertyPath: botellaPrefab
+      value: 
+      objectReference: {fileID: 5822357867968200811, guid: 93a5e7f7b7af5564895bb6d4bde2cbf5, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
