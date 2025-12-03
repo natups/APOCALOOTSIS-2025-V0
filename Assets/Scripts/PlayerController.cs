@@ -194,6 +194,25 @@ public class PlayerController : MonoBehaviour
         
         isHolding = true;
     }
+    
+    // ** MÉTODOS REQUERIDOS POR ZONADEENTREGAMANAGER **
+    public GameObject GetHeldObject()
+    {
+        return heldObject;
+    }
+
+    public void ClearHeldObject()
+    {
+        if (heldObject != null)
+        {
+            Destroy(heldObject);
+        }
+
+        heldObject = null;
+        heldObjectRB = null;
+        isHolding = false;
+    }
+
 
     public void DropObject()
     {
@@ -309,8 +328,19 @@ public class PlayerController : MonoBehaviour
     // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO ---
     public void ApplySlow(float factor)
     {
+        // Detiene la coroutine anterior si existe, para que el nuevo efecto se aplique.
         StopCoroutine("SlowRoutine");
         StartCoroutine("SlowRoutine", factor);
+    }
+
+    // ** MÉTODOS REQUERIDOS POR ZONADEENTREGAMANAGER **
+    /// <summary>
+    /// Aplica la penalización de lentitud cuando el jugador entrega un objeto incorrecto.
+    /// Firma corregida para no recibir argumentos.
+    /// </summary>
+    public void ApplySlowPenalty()
+    {
+        ApplySlow(0.5f); // Usa el factor hardcodeado para penalización
     }
 
     private IEnumerator SlowRoutine(float factor)
@@ -326,18 +356,28 @@ public class PlayerController : MonoBehaviour
 
         while (timeElapsed < duration) 
         {
-            spriteRenderer.color = Color.red; 
-            yield return new WaitForSeconds(blinkDuration); 
+            if (spriteRenderer != null) // Evita error si el renderer es destruido.
+            {
+                 spriteRenderer.color = Color.red; 
+                 yield return new WaitForSeconds(blinkDuration); 
 
-            spriteRenderer.color = originalColor; 
-            yield return new WaitForSeconds(blinkDuration);
+                 spriteRenderer.color = originalColor; 
+                 yield return new WaitForSeconds(blinkDuration);
+            }
+            else
+            {
+                yield return null;
+            }
 
             timeElapsed += (blinkDuration * 2); 
         }
 
         walkSpeed = originalWalkSpeed; 
         isSlowed = false; 
-        spriteRenderer.color = originalColor; 
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor; 
+        }
 
         Debug.Log($"Velocidad de {gameObject.name} restaurada.");
     }

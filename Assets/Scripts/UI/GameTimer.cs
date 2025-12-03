@@ -1,116 +1,74 @@
 using UnityEngine;
-using UnityEngine.UI; 
-using TMPro; // Necesario para usar TextMeshProUGUI
+using TMPro;
 
 public class GameTimer : MonoBehaviour
 {
     [Header("Configuración del Tiempo")]
     public float tiempoTotal = 60f;
-    private float tiempoInicio;
-    private float tiempoTranscurrido; 
+    private float tiempoRestante;
+    private bool isRunning = true;
 
+    // ÚNICA referencia de UI en este script: el texto del reloj.
     [Header("Referencias de UI")]
-    public Canvas canvasPuntuacionJuego; 
-    public Image panelOscuridad;         
-    public GameObject panelResultadoFinal; 
-
-    [Header("Visualización del Timer")]
-    public TextMeshProUGUI textoTimer; // 
-
-    // Variable para la penalización (ahora gestionada por ZonaDeEntrega, pero la mantenemos si GameTimer necesita usarla)
-    // [HideInInspector] public float penalizacionTiempo = 5f; 
-
-    private bool juegoTerminado = false;
+    public TextMeshProUGUI textoTimer; 
+    
+    // Referencia al Manager para terminar el juego
+    private ZonaDeEntregaManager zonaDeEntregaManager;
 
     void Start()
     {
-        if (panelResultadoFinal != null)
-        {
-            panelResultadoFinal.SetActive(false);
-        }
+        tiempoRestante = tiempoTotal;
+        // Buscamos el componente ZonaDeEntregaManager en el mismo objeto
+        zonaDeEntregaManager = GetComponent<ZonaDeEntregaManager>(); 
+        isRunning = true;
 
-        if (panelOscuridad != null)
+        if (zonaDeEntregaManager == null)
         {
-            panelOscuridad.color = new Color(0, 0, 0, 0);
+            Debug.LogError("ERROR: El script 'ZonaDeEntregaManager' no se encontró en el mismo GameObject. ¡Asegúrate de que el Manager está en el mismo objeto que GameTimer!");
+            enabled = false;
         }
-
-        // Empezar el temporizador
-        tiempoInicio = Time.time;
     }
 
     void Update()
     {
-        if (juegoTerminado) return;
-
-        tiempoTranscurrido = Time.time - tiempoInicio;
-
-        // CÁLCULO Y VISUALIZACIÓN DEL TIEMPO RESTANTE
-        float tiempoRestante = tiempoTotal - tiempoTranscurrido;
-        tiempoRestante = Mathf.Max(0f, tiempoRestante); 
-
-        if (textoTimer != null)
+        if (isRunning && tiempoRestante > 0)
         {
-            int minutos = Mathf.FloorToInt(tiempoRestante / 60);
-            int segundos = Mathf.FloorToInt(tiempoRestante % 60);
-            textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+            tiempoRestante -= Time.deltaTime;
+            
+            if (textoTimer != null)
+            {
+                int minutos = Mathf.FloorToInt(tiempoRestante / 60f);
+                int segundos = Mathf.FloorToInt(tiempoRestante % 60f);
+                textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+            }
         }
-
-        // LÓGICA DE OSCURIDAD
-        float t = tiempoTranscurrido / tiempoTotal;
-        t = Mathf.Clamp01(t); 
-
-        if (panelOscuridad != null)
+        else if (isRunning && tiempoRestante <= 0)
         {
-            panelOscuridad.color = new Color(0, 0, 0, t);
-        }
-
-        // Verificar si el tiempo se acabó
-        if (tiempoTranscurrido >= tiempoTotal)
-        {
-            TerminarPartida();
+            tiempoRestante = 0;
+            isRunning = false;
+            // Terminar el juego a través del Manager
+            if (zonaDeEntregaManager != null)
+            {
+                zonaDeEntregaManager.FinalizeGame(true); // isTimeOut = true
+            }
         }
     }
-
-    // Este método se llama desde ZonaDeEntrega para penalizar
+    
+    // El Manager llama a estos métodos
     public void AplicarPenalizacion(float cantidad)
     {
-        if (!juegoTerminado)
+        if (isRunning)
         {
-            // Aumenta el tiempo transcurrido, lo que reduce el tiempo restante.
-            tiempoInicio -= cantidad; 
-            Debug.Log("¡Objeto Incorrecto! Penalización de " + cantidad + " segundos aplicada.");
+            tiempoRestante -= cantidad;
+            if (tiempoRestante < 0)
+            {
+                tiempoRestante = 0;
+            }
         }
     }
 
-
-    public void TerminarPartida()
+    public void DetenerTiempo()
     {
-        juegoTerminado = true;
-        
-        if (panelOscuridad != null)
-        {
-            panelOscuridad.color = new Color(0, 0, 0, 1f);
-        }
-
-        if (canvasPuntuacionJuego != null) 
-        {
-            canvasPuntuacionJuego.gameObject.SetActive(false); 
-        }
-        
-         if (textoTimer != null) 
-        {
-            textoTimer.gameObject.SetActive(false); 
-        }
-
-        if (panelResultadoFinal != null)
-        {
-            panelResultadoFinal.SetActive(true);
-            
-            // Llama a SendEndScreen() en ZonaDeEntrega para mostrar los resultados correctos
-            // Esto es crucial para la lógica de fin de partida. Asumimos que GameTimer
-            // tiene una referencia a ZonaDeEntrega si es necesario, o lo llama desde TerminarPartida.
-        }
-        
-        Time.timeScale = 0f;
+        isRunning = false;
     }
 }

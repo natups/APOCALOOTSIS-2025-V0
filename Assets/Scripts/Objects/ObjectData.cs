@@ -1,29 +1,51 @@
 using UnityEngine;
 
-// Asegúrate de que este script esté adjunto al Prefab base de tus objetos.
+/// <summary>
+/// Este script es un componente de la escena que se adjunta a los objetos generados.
+/// Contiene una referencia a su Scriptable Object (tipo 'Object').
+/// </summary>
 public class ObjectData : MonoBehaviour
 {
-    // Cambiamos de 'Object' a 'BaseDataObject' para asegurar la compatibilidad de tipos
-    private BaseDataObject objectData;
+    [Tooltip("La data principal (Scriptable Object) que define este objeto.")]
+    // Usamos el tipo 'Object', que es la clase que definiste
+    public Object data; 
 
-    public BaseDataObject GetObjectData() => objectData;
-
-    // Usamos el nombre del método de tu compañero y el tipo correcto de dato
-    public void SetObjectData(BaseDataObject data)
+    // Referencia al renderizador para actualizar la apariencia
+    private SpriteRenderer spriteRenderer;
+    
+    void Awake()
     {
-        objectData = data;
-        
-        // Actualizar el sprite y el color usando las propiedades de BaseDataObject
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
+        // El objeto en la escena debe tener un SpriteRenderer para la parte visual
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
         {
-            // Usamos objectSprite (del BaseDataObject.cs) en lugar de 'Asset'
-            spriteRenderer.sprite = data.objectSprite; 
-            // Usamos displayColor (del BaseDataObject.cs)
-            spriteRenderer.color = data.displayColor; 
+            Debug.LogError("ObjectData requiere un SpriteRenderer en el mismo GameObject.");
+        }
+    }
+
+    /// <summary>
+    /// Asigna el Scriptable Object 'Object' a esta instancia y actualiza su apariencia.
+    /// Este método es llamado por ObjectSpawner al crear el objeto.
+    /// </summary>
+    /// <param name="objectData">El Scriptable Object de tipo 'Object' a usar.</param>
+    public void SetData(Object objectData)
+    {
+        if (objectData == null)
+        {
+            Debug.LogError("Se intentó asignar data nula a ObjectData.");
+            return;
         }
 
-        // Opcional: Establecer el nombre del GameObject para facilitar la depuración
+        this.data = objectData;
+
+        // Actualiza la apariencia visual
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = data.objectSprite;
+            spriteRenderer.color = data.displayColor;
+        }
+
+        // Renombrar el objeto en la jerarquía (ayuda al debug)
         gameObject.name = "Objeto: " + data.objectName;
     }
 }

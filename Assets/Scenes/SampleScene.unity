@@ -159,6 +159,17 @@ MonoBehaviour:
   m_DefaultActionMap: Player2
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &101104807 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9070451121435561278, guid: 2f93706ebce16084bba2961ba52e5708, type: 3}
+  m_PrefabInstance: {fileID: 1291590432}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101104786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4805e46ac6402c54f84604d218b06476, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
 --- !u!1 &125378083
 GameObject:
   m_ObjectHideFlags: 0
@@ -1593,17 +1604,127 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1199865065 stripped
+--- !u!114 &1199865068
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7264275254396269159, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
-  m_PrefabInstance: {fileID: 8008344325827059764}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1199865060}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95f9fa5b6e37da448a15f65e56a1e7ef, type: 3}
+  m_Script: {fileID: 11500000, guid: 5f22da10b74d3864eb81a66e95a270ce, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ZonaDeEntrega
+  m_EditorClassIdentifier: Assembly-CSharp::CajaDrop
+  zonaDeEntregaManager: {fileID: 0}
+--- !u!114 &1199865069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1199865060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d915c5871708324db57c2aaa39e9381, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ZonaDeEntregaManager
+  listaObjetivoText: {fileID: 1475087718}
+  endScreenUI: {fileID: 0}
+  endScreenMessageText: {fileID: 0}
+  p1ScoreText: {fileID: 0}
+  p2ScoreText: {fileID: 0}
+  objectSpawner: {fileID: 0}
+  gameTimer: {fileID: 0}
+  player1Controller: {fileID: 1393424396}
+  player2Controller: {fileID: 101104807}
+  currentMode: 0
+  totalObjectsToWin: 5
+  coopObjectsToWin: 5
+  coopTimePenaltyAmount: 3
+  versusSlowFactor: 0.5
+--- !u!114 &1199865070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1199865060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24fb10bbaf8dc7247bbbfb46cd5c12d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameTimer
+  tiempoTotal: 60
+  canvasPuntuacionJuego: {fileID: 0}
+  panelOscuridad: {fileID: 0}
+  panelResultadoFinal: {fileID: 0}
+  textoTimer: {fileID: 0}
+--- !u!114 &1199865071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1199865060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4360cb679f434a4099427768713c6d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectSpawner
+  baseObjectPrefab: {fileID: 6642589127002495371, guid: 866ca5663f0cd2345be3e24e66cb9592, type: 3}
+  allPossibleObjectData:
+  - {fileID: 11400000, guid: 1e51711679dacc94aa55792a9f67e752, type: 2}
+  - {fileID: 11400000, guid: 1b03ac60d5fff1940bf819e9f75c7ea3, type: 2}
+  - {fileID: 11400000, guid: bf0f6633f5719614188367f1620e1b65, type: 2}
+  - {fileID: 11400000, guid: 9f02912ae1ed51d4fb25adb6f2c88c1a, type: 2}
+  - {fileID: 11400000, guid: 11ef3b71778a3874a99a51ce06672b9d, type: 2}
+  - {fileID: 11400000, guid: 193b6f7dcecb01d4fada8ab86dfd3fdc, type: 2}
+  - {fileID: 11400000, guid: 4f445f9234ce4464086501ec824b3be7, type: 2}
+  - {fileID: 11400000, guid: 79a3364d40d501f409c26db22850cb91, type: 2}
+  - {fileID: 11400000, guid: 29d9abb9c4f19e5408fda8364ef11163, type: 2}
+  - {fileID: 11400000, guid: bdd3b418c026e944c84720518d618927, type: 2}
+  - {fileID: 11400000, guid: 3a7bbfaa280d4da4580ca5b2e2774d1e, type: 2}
+  - {fileID: 11400000, guid: ec650e7eb6146d54b9f9911a9e68443a, type: 2}
+  - {fileID: 11400000, guid: e0abc233a37a199418b835c6a00614e9, type: 2}
+  - {fileID: 11400000, guid: fbc947a038e01294189715f9621d64e6, type: 2}
+  - {fileID: 11400000, guid: 03f9b89f02f68954190d81c7ea9a76fd, type: 2}
+  - {fileID: 11400000, guid: 02844e9f92b003241872f1ce0f157956, type: 2}
+  - {fileID: 11400000, guid: a228a38546aefe54db3512138be23ec8, type: 2}
+  - {fileID: 11400000, guid: d21cfdd1d7fdda743b0afc99069d3348, type: 2}
+  - {fileID: 11400000, guid: 82c82940358bcdb4786c8fa764a29fba, type: 2}
+  - {fileID: 11400000, guid: 6c496519105afce45909e07715d3ccfa, type: 2}
+  - {fileID: 11400000, guid: 5565d259db055ff45bdf1399b6c1dcc0, type: 2}
+  - {fileID: 11400000, guid: 8daf8141e29cbe44cb84b1d88e45982b, type: 2}
+  - {fileID: 11400000, guid: e3e6c5c2e56b2f1409127e6418f47100, type: 2}
+  - {fileID: 11400000, guid: cc93012050fd2e049a2b5c0aa7dcb421, type: 2}
+  - {fileID: 11400000, guid: 9a63371cccf2833478d07b6b13d06945, type: 2}
+  - {fileID: 11400000, guid: 7b69f90a645745f4abbf88f092b4e3ae, type: 2}
+  - {fileID: 11400000, guid: 0e1d5b48b088a1f47b4d8f6602703ab7, type: 2}
+  - {fileID: 11400000, guid: 88c40c4d60edc21468e5da29b7b5e450, type: 2}
+  - {fileID: 11400000, guid: d1d4f184aa9cd5342b601819eb3e95eb, type: 2}
+  - {fileID: 11400000, guid: 733b5ad768b31184fa11f6c7e19ad207, type: 2}
+  - {fileID: 11400000, guid: c7146a1b4eb88f3499834b6c09758acc, type: 2}
+  - {fileID: 11400000, guid: 49c1fa84cb3778545b3c4a757ac47b09, type: 2}
+  - {fileID: 11400000, guid: c601df85fa29af742997f113d0a511cc, type: 2}
+  - {fileID: 11400000, guid: c2c19d99e3e3d0a4cb4d29657e6ed5bf, type: 2}
+  - {fileID: 11400000, guid: 2d694db41b9458e4ebef0fac65412dc9, type: 2}
+  - {fileID: 11400000, guid: 0d65dd53be5b7dd479b841f286e829d8, type: 2}
+  spawnPoints:
+  - {fileID: 1193767100}
+  - {fileID: 575963208}
+  - {fileID: 2067948625}
+  - {fileID: 1857201607}
+  - {fileID: 143318169}
+  - {fileID: 371846348}
+  - {fileID: 1114300906}
+  - {fileID: 221081194}
+  - {fileID: 881149722}
+  - {fileID: 1405151982}
+  maxObjectsOnScreen: 10
+  totalObjectsRequired: 5
+  requiredObjects: []
+  spawnedObjects: []
 --- !u!1 &1258344161
 GameObject:
   m_ObjectHideFlags: 0
@@ -2581,6 +2702,7 @@ GameObject:
   - component: {fileID: 1565502060}
   - component: {fileID: 1565502062}
   - component: {fileID: 1565502063}
+  - component: {fileID: 1565502064}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -2600,6 +2722,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cac58f2e8661844c8873fbde04be9d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
+  pauseMenuUI: {fileID: 0}
 --- !u!4 &1565502061
 Transform:
   m_ObjectHideFlags: 0
@@ -2643,10 +2766,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameTimer
   tiempoTotal: 50
-  canvasPuntuacionJuego: {fileID: 0}
+  canvasPuntuacionJuego: {fileID: 1821600462}
   panelOscuridad: {fileID: 527525911}
   panelResultadoFinal: {fileID: 0}
   textoTimer: {fileID: 1836255746}
+--- !u!114 &1565502064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565502059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4360cb679f434a4099427768713c6d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectSpawner
+  baseObjectPrefab: {fileID: 0}
+  allPossibleObjectData: []
+  spawnPoints: []
+  maxObjectsOnScreen: 10
+  totalObjectsRequired: 5
+  requiredObjects: []
+  spawnedObjects: []
 --- !u!1 &1593807155
 GameObject:
   m_ObjectHideFlags: 0
@@ -3381,7 +3523,7 @@ PrefabInstance:
     - target: {fileID: 6337612499337138341, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
       propertyPath: zonaDeEntrega
       value: 
-      objectReference: {fileID: 1199865065}
+      objectReference: {fileID: 0}
     - target: {fileID: 6337612499337138341, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
       propertyPath: timerSprites.Array.size
       value: 6
@@ -6053,13 +6195,26 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7264275254396269159, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2879139948927203829, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1199865064}
+    - targetCorrespondingSourceObject: {fileID: 2879139948927203829, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1199865071}
+    - targetCorrespondingSourceObject: {fileID: 2879139948927203829, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1199865070}
+    - targetCorrespondingSourceObject: {fileID: 2879139948927203829, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1199865069}
+    - targetCorrespondingSourceObject: {fileID: 2879139948927203829, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1199865068}
   m_SourcePrefab: {fileID: 100100000, guid: 41fcdefc70cb79244857d002135a0f02, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
