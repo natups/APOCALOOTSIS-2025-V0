@@ -5,8 +5,12 @@ using TMPro;
 using System.Collections;
 using UnityEngine.UI; 
 
+// Nota: El enum GameMode se define en este mismo archivo.
 public enum GameMode { COOP, VERSUS }
 
+/// <summary>
+/// Script principal que maneja la lógica de objetivos, puntuación, penalizaciones y el fin del juego.
+/// </summary>
 public class ZonaDeEntregaManager : MonoBehaviour
 {
     // ==========================================================
@@ -16,23 +20,20 @@ public class ZonaDeEntregaManager : MonoBehaviour
     [Header("Referencias de Scripts")]
     public ObjectSpawner objectSpawner;
     public GameTimer gameTimer; 
-    
-    // Referencias externas (Jugadores)
     public PlayerController player1Controller;
     public PlayerController player2Controller;
+    public DarknessController darknessController; 
 
     // ==========================================================
-    // SECCIÓN 2: REFERENCIAS DE UI (¡TODAS AQUÍ!)
+    // SECCIÓN 2: REFERENCIAS DE UI
     // ==========================================================
     
     [Header("Referencias de UI")]
-    [Tooltip("Texto principal para mostrar el objetivo actual.")]
+    [Tooltip("Texto que muestra la cantidad de objetos entregados.")]
     public TextMeshProUGUI listaObjetivoText; 
-    [Tooltip("Panel de Imagen (Canvas) para efectos de penalización (Flash Oscuro).")]
-    public Image panelOscuridad; 
-    [Tooltip("El GameObject del panel de resultados final (Debe estar inactivo al inicio).")]
+    [Tooltip("Panel de la pantalla de fin de juego.")]
     public GameObject endScreenUI; 
-    [Tooltip("Texto para el mensaje final ('¡Tiempo Agotado!', '¡Victoria!').")]
+    [Tooltip("Mensaje principal de la pantalla de fin de juego.")]
     public TextMeshProUGUI endScreenMessageText; 
 
     [Header("Referencias de Puntuación")]
@@ -45,33 +46,47 @@ public class ZonaDeEntregaManager : MonoBehaviour
 
     [Header("Configuración de Juego")]
     public GameMode currentMode = GameMode.COOP;
+    [Tooltip("Cantidad total de objetos correctos que deben entregarse para ganar.")]
     public int totalObjectsToWin = 5; 
+    [Tooltip("Cantidad de segundos a restar del tiempo al entregar un objeto incorrecto en modo COOP.")]
     public float coopTimePenaltyAmount = 3f; 
     
-    private int player1Score = 0;
-    private int player2Score = 0;
+    private int objectsDeliveredCount = 0; 
+    private int player1Score = 0; 
+    private int player2Score = 0; 
     private bool gameOver = false;
-
+    
+    // NOTA: Eliminamos la lista de objetivos duplicada. Usaremos la lista del ObjectSpawner.
+    
     private void Start()
     {
-        if (endScreenUI != null)
+        if (endScreenUI != null) endScreenUI.SetActive(false);
+
+        // 1. Inicializar el Spawner y generar los objetos iniciales.
+        if (objectSpawner != null)
         {
-            endScreenUI.SetActive(false);
+            objectSpawner.totalObjectsRequired = totalObjectsToWin;
+            objectSpawner.InitializeSpawner();
         }
-        if (panelOscuridad != null)
+        else
         {
-            panelOscuridad.gameObject.SetActive(false); 
+            Debug.LogError("Referencia a ObjectSpawner NO asignada. Asigna el Spawner en el Inspector.");
         }
-        
-        UpdateObjectiveList();
+
+        UpdateObjectiveUI();
         UpdateScoreUI();
         Time.timeScale = 1f; 
+        
+        if (darknessController != null)
+        {
+            darknessController.StartDarknessIncrease();
+        }
     }
-
-    // ==========================================================
-    // LÓGICA DE ENTREGA (Llamada desde CajaDrop.cs)
-    // ==========================================================
     
+    /// <summary>
+    /// Procesa la entrega de un objeto por parte de un jugador (llamado por CajaDrop.cs).
+    /// </summary>
+    /// <param name="player">El PlayerController que está entregando el objeto.</param>
     public void CheckDelivery(PlayerController player)
     {
         if (gameOver) return;
@@ -80,116 +95,129 @@ public class ZonaDeEntregaManager : MonoBehaviour
         if (heldObject == null) return;
         
         ObjectData objectComponent = heldObject.GetComponent<ObjectData>();
-        if (objectComponent == null || objectComponent.data == null)
+        
+        // Obtiene el ScriptableObject de la data.
+        Object carriedObjectData = objectComponent?.data;
+
+        if (carriedObjectData == null)
         {
             Debug.LogError("El objeto entregado no tiene ObjectData o su data es nula.");
+            player.ClearHeldObject();
+            Destroy(heldObject); 
             return;
         }
 
-        Object carriedObjectData = objectComponent.data;
-
-        if (objectSpawner != null && objectSpawner.IsCurrentObjective(carriedObjectData))
+        // CRÍTICO: Comprueba si el ScriptableObject entregado está en la lista de objetivos restantes del Spawner.
+        if (objectSpawner.requiredObjects.Contains(carriedObjectData))
         {
             // --- ENTREGA CORRECTA ---
-            objectSpawner.ObjectDelivered(carriedObjectData);
-            player.ClearHeldObject(); 
-            Destroy(heldObject); 
+            
+            Debug.Log($"Entrega Correcta: {carriedObjectData.objectName}");
 
+            // 1. Limpiar y actualizar estado
+            objectSpawner.RemoveFromObjective(carriedObjectData); 
+            objectsDeliveredCount++; 
+            
+            // 2. Actualizar puntuación
             if (player == player1Controller) { player1Score++; }
             else if (player == player2Controller) { player2Score++; }
-
+            
+            // 3. Limpiar objeto del jugador y del spawner. El spawner destruye el objeto.
+            player.ClearHeldObject(); 
+            objectSpawner.RemoveObjectFromList(heldObject);
+            
+            // 4. Actualizar UI
+            UpdateObjectiveUI();
             UpdateScoreUI();
             
-            if (player1Score + player2Score >= totalObjectsToWin)
+            // 5. Verificar victoria
+            if (objectsDeliveredCount >= totalObjectsToWin)
             {
-                FinalizeGame(false); 
-                return;
+                FinalizeGame(false); // isTimeOut = false (Victoria por objetivo)
             }
-
-            UpdateObjectiveList();
+            else
+            {
+                // Vuelve a generar objetos para rellenar el mapa
+                objectSpawner.SpawnInitialObjects();
+            }
         }
         else
         {
-            // --- ENTREGA INCORRECTA ---
+            // --- ENTREGA INCORRECTA (PENALIZACIÓN) ---
             
-            if (gameTimer != null)
-            {
-                gameTimer.AplicarPenalizacion(coopTimePenaltyAmount);
-                StartCoroutine(FlashOscuridad()); 
-            }
+            Debug.Log($"Objeto INCORRECTO: {carriedObjectData.objectName}. Aplicando penalización.");
 
+            if (currentMode == GameMode.COOP)
+            {
+                // Penalización de tiempo (solo en COOP)
+                if (gameTimer != null)
+                {
+                    gameTimer.AplicarPenalizacion(coopTimePenaltyAmount);
+                }
+                
+                // Efecto de oscuridad
+                if (darknessController != null)
+                {
+                    darknessController.FlashPenalty(); 
+                }
+            }
+            
+            // Penalización de lentitud (aplica a VERSUS y COOP)
             player.ApplySlowPenalty(); 
             
+            // Limpiar objeto del jugador y del spawner (se destruye el objeto)
             player.ClearHeldObject();
-            Destroy(heldObject);
-        }
-    }
-    
-    IEnumerator FlashOscuridad()
-    {
-        if (panelOscuridad != null)
-        {
-            panelOscuridad.gameObject.SetActive(true);
-            Color baseColor = panelOscuridad.color;
-            panelOscuridad.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.5f); 
-            yield return new WaitForSeconds(0.15f); 
+            objectSpawner.RemoveObjectFromList(heldObject);
             
-            panelOscuridad.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0f);
-            yield return new WaitForSeconds(0.15f); 
-            panelOscuridad.gameObject.SetActive(false); 
+            // Vuelve a generar objetos
+            objectSpawner.SpawnInitialObjects();
+        }
+        
+        // CRÍTICO: Comprobación de Game Over después de una penalización si el tiempo se agotó.
+        if (currentMode == GameMode.COOP && gameTimer != null && gameTimer.GetTimeRemaining() <= 0f)
+        {
+             FinalizeGame(true); // isTimeOut = true (Derrota por tiempo)
         }
     }
-
 
     // ==========================================================
     // LÓGICA DE FIN DE PARTIDA
     // ==========================================================
 
+    /// <summary>
+    /// Finaliza el juego, congela el tiempo y muestra la pantalla de resultados.
+    /// </summary>
+    /// <param name="isTimeOut">True si se terminó por tiempo, False si fue por objetivo.</param>
     public void FinalizeGame(bool isTimeOut)
     {
         if (gameOver) return;
         gameOver = true;
         
         Time.timeScale = 0f; 
-        if (gameTimer != null) gameTimer.DetenerTiempo();
-
-        string finalMessage = "";
-        if (!isTimeOut)
-        {
-            finalMessage = "¡MISIÓN CUMPLIDA! ¡VICTORIA COOPERATIVA!";
-        }
-        else
-        {
-            finalMessage = "¡TIEMPO AGOTADO! No lograron entregar todos los objetos a tiempo.";
-             
-            if (panelOscuridad != null)
-            {
-                panelOscuridad.gameObject.SetActive(true);
-                panelOscuridad.color = new Color(0f, 0f, 0f, 0.8f); 
-            }
-        }
         
-        if (endScreenUI != null)
-        {
-            endScreenUI.SetActive(true);
-        }
+        if (gameTimer != null) gameTimer.DetenerTiempo(); 
+        if (objectSpawner != null) objectSpawner.StopSpawning();
+        if (darknessController != null) darknessController.StopDarknessIncrease(); 
 
-        if (endScreenMessageText != null)
-        {
-            endScreenMessageText.text = finalMessage;
-        }
+        string finalMessage = isTimeOut 
+            ? "¡TIEMPO AGOTADO! No lograron entregar todos los objetos a tiempo." 
+            : "¡MISIÓN CUMPLIDA! ¡VICTORIA COOPERATIVA!";
+        
+        if (endScreenUI != null) endScreenUI.SetActive(true);
+        if (endScreenMessageText != null) endScreenMessageText.text = finalMessage;
+        
+        Debug.Log("PARTIDA TERMINADA: " + finalMessage);
     }
 
     // ==========================================================
     // LÓGICA DE UI ADICIONAL
     // ==========================================================
 
-    private void UpdateObjectiveList()
+    private void UpdateObjectiveUI()
     {
-        if (listaObjetivoText != null && objectSpawner != null && objectSpawner.GetCurrentObjectives().Count > 0)
+        if (listaObjetivoText != null)
         {
-            // ASUMIMOS que el objeto objetivo tiene una propiedad objectName
-            listaObjetivoText.text = "Objetivo: " + objectSpawner.GetCurrentObjectives()[0].objectName;
+            listaObjetivoText.text = $"{objectsDeliveredCount}/{totalObjectsToWin}";
         }
     }
 

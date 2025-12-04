@@ -1,129 +1,150 @@
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
+using System.Collections.Generic;
+using System.Linq;
 
 public class ObjectSpawner : MonoBehaviour
 {
-    // ==========================================================
-    // VARIABLES EXISTENTES 
-    // ==========================================================
     [Header("Configuración de Objetos")]
-    // La lista ahora debe contener referencias al ScriptableObject 'Object'
-    // ya que este es el tipo que define la data.
+    public ObjectData baseObjectPrefab; 
     public List<Object> allPossibleObjectData; 
-    public GameObject baseObjectPrefab; 
-
-    [Header("Configuración de Spawn")]
     public List<Transform> spawnPoints;
-    public int maxObjectsOnScreen = 10;
-    public float spawnInterval = 3f;
-
-    // ==========================================================
-    // GESTIÓN DE ESTADO Y OBJETIVOS
-    // ==========================================================
-    // Los objetivos son ahora del tipo ScriptableObject 'Object'
-    private List<Object> currentObjectives = new List<Object>();
-    private List<GameObject> activeObjects = new List<GameObject>();
-    private float spawnTimer = 0f;
-    private bool isSpawning = true;
-
-    // ==========================================================
-    // MÉTODOS BASE DE UNITY
-    // ==========================================================
-    private void Start()
-    {
-        GenerateNewObjective(1); // Genera el objetivo inicial
-        for (int i = 0; i < maxObjectsOnScreen; i++)
-        {
-            SpawnNewObject();
-        }
-    }
-
-    private void Update()
-    {
-        if (isSpawning)
-        {
-            spawnTimer += Time.deltaTime;
-            if (spawnTimer >= spawnInterval && activeObjects.Count < maxObjectsOnScreen)
-            {
-                SpawnNewObject();
-                spawnTimer = 0f;
-            }
-        }
-    }
-
-    // ==========================================================
-    // MÉTODOS LLAMADOS POR ZONADEENTREGAMANAGER (¡Errores corregidos!)
-    // ==========================================================
     
-    // Ahora devuelve la lista de Scriptable Objects (Object)
-    public List<Object> GetCurrentObjectives()
-    {
-        return currentObjectives;
-    }
+    public int maxObjectsOnScreen = 10; 
+    public int totalObjectsRequired = 5; 
 
-    // El deliveredObject es el Scriptable Object 'Object'
-    public bool IsCurrentObjective(Object deliveredObject)
+    [HideInInspector] public List<Object> requiredObjects = new List<Object>(); // Objetivos restantes
+    [HideInInspector] public List<ObjectData> spawnedObjects = new List<ObjectData>(); // Instancias en escena
+    
+    private bool isSpawning = true; // Control de StopSpawning
+
+    /// <summary>
+    /// Inicializa el spawner, selecciona objetivos y genera el set inicial.
+    /// </summary>
+    public void InitializeSpawner()
     {
-        if (deliveredObject != null && currentObjectives.Count > 0)
+        ClearSpawnedObjects();
+        requiredObjects.Clear();
+        isSpawning = true;
+        
+        List<Object> availableObjects = new List<Object>(allPossibleObjectData);
+        
+        if (availableObjects.Count < totalObjectsRequired)
         {
-            // ** ERROR CS1061 RESUELTO: 'objectName' está en BaseDataObject, al que Object tiene acceso. **
-            foreach(var objective in currentObjectives)
-            {
-                if (objective.objectName == deliveredObject.objectName)
-                {
-                    return true;
-                }
-            }
+            Debug.LogError("ERROR: No hay suficientes Data Objects para el objetivo. Necesitas al menos " + totalObjectsRequired + " únicos.");
+            return;
         }
-        return false;
+
+        // 1. Seleccionar objetos CORRECTOS (Objetivo)
+        for (int i = 0; i < totalObjectsRequired; i++)
+        {
+            if (availableObjects.Count == 0) break; 
+            int randomIndex = Random.Range(0, availableObjects.Count);
+            requiredObjects.Add(availableObjects[randomIndex]);
+            availableObjects.RemoveAt(randomIndex); 
+        }
+        
+        SpawnInitialObjects();
     }
     
-    // El deliveredObject es el Scriptable Object 'Object'
-    public void ObjectDelivered(Object deliveredObject)
+    /// <summary>
+    /// Genera los objetos correctos e incorrectos.
+    /// </summary>
+    public void SpawnInitialObjects()
     {
-        GenerateNewObjective(1); 
-    }
+        if (!isSpawning) return;
+        
+        // Limpia referencias a objetos que ya fueron destruidos
+        spawnedObjects.RemoveAll(item => item == null);
+        
+        // 1. Crear la lista de objetos a generar (Objetivos + Cebo)
+        List<Object> objectsToSpawn = new List<Object>(requiredObjects);
+        
+        // 2. Seleccionar objetos INCORRECTOS
+        List<Object> allObjectsTyped = allPossibleObjectData.Cast<Object>().ToList();
+        List<Object> incorrectObjects = allObjectsTyped.Except(requiredObjects).ToList();
+        
+        int incorrectsNeeded = maxObjectsOnScreen - spawnedObjects.Count; // Rellenar hasta el máximo
+        
+        for (int i = 0; i < incorrectsNeeded && incorrectObjects.Count > 0; i++)
+        {
+            int randomIndex = Random.Range(0, incorrectObjects.Count);
+            objectsToSpawn.Add(incorrectObjects[randomIndex]);
+            incorrectObjects.RemoveAt(randomIndex);
+        }
+        
+        ShuffleList(objectsToSpawn); 
 
+        // 3. Generar en puntos aleatorios no ocupados
+        List<Transform> availableSpawnPoints = new List<Transform>(spawnPoints);
+        
+        foreach (var objData in objectsToSpawn)
+        {
+            if (availableSpawnPoints.Count == 0) break;
+
+            int randomSpawnIndex = Random.Range(0, availableSpawnPoints.Count);
+            Transform spawnPoint = availableSpawnPoints[randomSpawnIndex];
+            
+            ObjectData newObject = Instantiate(baseObjectPrefab, spawnPoint.position, Quaternion.identity);
+            
+            // Asigna la plantilla de datos al componente del objeto
+            newObject.SetData(objData);
+            
+            spawnedObjects.Add(newObject);
+            availableSpawnPoints.RemoveAt(randomSpawnIndex); 
+        }
+    }
+    
+    /// <summary>
+    /// Elimina el GameObject y su referencia de la lista (Llamado desde Manager).
+    /// </summary>
+    public void RemoveObjectFromList(GameObject heldObject)
+    {
+        ObjectData objData = heldObject.GetComponent<ObjectData>();
+        if (objData != null)
+        {
+            spawnedObjects.Remove(objData); 
+        }
+        Destroy(heldObject);
+    }
+    
+    /// <summary>
+    /// Remueve el ScriptableObject de la lista de objetivos restantes.
+    /// </summary>
+    public void RemoveFromObjective(Object obj)
+    {
+        requiredObjects.Remove(obj);
+    }
+    
+    /// <summary>
+    /// Detiene la generación de objetos.
+    /// </summary>
     public void StopSpawning()
     {
         isSpawning = false;
     }
 
-    // ==========================================================
-    // LÓGICA INTERNA DE SPAWNING
-    // ==========================================================
-    
-    private void GenerateNewObjective(int count)
+    private void ClearSpawnedObjects()
     {
-        currentObjectives.Clear();
-        for (int i = 0; i < count; i++)
+        foreach (var obj in spawnedObjects)
         {
-            if (allPossibleObjectData.Count > 0)
+            if (obj != null)
             {
-                int randomIndex = Random.Range(0, allPossibleObjectData.Count);
-                currentObjectives.Add(allPossibleObjectData[randomIndex]);
+                Destroy(obj.gameObject);
             }
         }
+        spawnedObjects.Clear();
     }
-
-    private void SpawnNewObject()
+    
+    private void ShuffleList<T>(List<T> list)
     {
-        if (spawnPoints.Count == 0 || allPossibleObjectData.Count == 0 || activeObjects.Count >= maxObjectsOnScreen) return;
-
-        Transform randomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
-        GameObject newObjectGO = Instantiate(baseObjectPrefab, randomSpawnPoint.position, Quaternion.identity);
-        activeObjects.Add(newObjectGO);
-
-        // Lógica CRÍTICA: Asignar la data al objeto recién creado
-        ObjectData objectDataComponent = newObjectGO.GetComponent<ObjectData>();
-        if (objectDataComponent != null)
+        int n = list.Count;
+        while (n > 1)
         {
-            // 1. Selecciona un Scriptable Object de la lista de posibles
-            Object selectedData = allPossibleObjectData[Random.Range(0, allPossibleObjectData.Count)];
-            
-            // 2. Llama a tu función SetData para inicializar el objeto visual
-            objectDataComponent.SetData(selectedData);
+            n--;
+            int k = Random.Range(0, n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
         }
     }
 }

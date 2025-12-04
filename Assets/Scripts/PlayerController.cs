@@ -203,11 +203,7 @@ public class PlayerController : MonoBehaviour
 
     public void ClearHeldObject()
     {
-        if (heldObject != null)
-        {
-            Destroy(heldObject);
-        }
-
+        // Importante: El Manager ahora destruye el objeto. Aquí solo limpiamos referencias.
         heldObject = null;
         heldObjectRB = null;
         isHolding = false;
@@ -224,6 +220,7 @@ public class PlayerController : MonoBehaviour
             heldCollider.enabled = true;
         }
 
+        // Aseguramos que no tenga el componente de proyectil si se soltó.
         ThrownObject projectile = heldObject.GetComponent<ThrownObject>();
         if (projectile != null)
         {
@@ -235,6 +232,7 @@ public class PlayerController : MonoBehaviour
         
         if (heldObjectRB != null)
         {
+            // Devolver a Kinematic si el objeto debe permanecer quieto al soltarlo (como en un spawn point)
             heldObjectRB.bodyType = RigidbodyType2D.Kinematic; 
             heldObjectRB.linearVelocity = Vector2.zero;
         }
@@ -267,7 +265,7 @@ public class PlayerController : MonoBehaviour
         
         // 2. Disminuir el contador y actualizar la UI
         bottlesRemaining--;
-        UpdateBottleUI(); // Llama a la función que actualiza el texto de P1 o P2
+        UpdateBottleUI(); 
 
         // 3. Instanciar y lanzar la botella
         GameObject bottleInstance = Instantiate(botellaPrefab, transform.position + (Vector3)lastMoveDirection * 0.5f, Quaternion.identity);
@@ -278,6 +276,7 @@ public class PlayerController : MonoBehaviour
         
         if(projectile == null)
         {
+            // Asumo que ThrownObject es un script que maneja la colisión y daño
             projectile = bottleInstance.AddComponent<ThrownObject>();
         }
         
@@ -321,26 +320,21 @@ public class PlayerController : MonoBehaviour
         canMove = true;
         if (spriteRenderer != null)
         {
-            spriteRenderer.color = Color.white;
+            spriteRenderer.color = originalColor;
         }
     }
 
     // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO ---
     public void ApplySlow(float factor)
     {
-        // Detiene la coroutine anterior si existe, para que el nuevo efecto se aplique.
         StopCoroutine("SlowRoutine");
         StartCoroutine("SlowRoutine", factor);
     }
 
     // ** MÉTODOS REQUERIDOS POR ZONADEENTREGAMANAGER **
-    /// <summary>
-    /// Aplica la penalización de lentitud cuando el jugador entrega un objeto incorrecto.
-    /// Firma corregida para no recibir argumentos.
-    /// </summary>
     public void ApplySlowPenalty()
     {
-        ApplySlow(0.5f); // Usa el factor hardcodeado para penalización
+        ApplySlow(0.5f); // 50% de velocidad por defecto
     }
 
     private IEnumerator SlowRoutine(float factor)
@@ -356,13 +350,13 @@ public class PlayerController : MonoBehaviour
 
         while (timeElapsed < duration) 
         {
-            if (spriteRenderer != null) // Evita error si el renderer es destruido.
+            if (spriteRenderer != null)
             {
-                 spriteRenderer.color = Color.red; 
-                 yield return new WaitForSeconds(blinkDuration); 
+                spriteRenderer.color = Color.red; 
+                yield return new WaitForSeconds(blinkDuration); 
 
-                 spriteRenderer.color = originalColor; 
-                 yield return new WaitForSeconds(blinkDuration);
+                spriteRenderer.color = originalColor; 
+                yield return new WaitForSeconds(blinkDuration);
             }
             else
             {
@@ -387,7 +381,6 @@ public class PlayerController : MonoBehaviour
     {
         if (bottleCounterText != null)
         {
-            // Actualiza el texto con el formato "x3", "x2", etc.
             bottleCounterText.text = $"x{bottlesRemaining}"; 
         }
     }
