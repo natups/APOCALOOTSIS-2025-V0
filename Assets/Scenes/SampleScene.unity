@@ -1616,7 +1616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f22da10b74d3864eb81a66e95a270ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CajaDrop
-  zonaDeEntregaManager: {fileID: 0}
+  zonaDeEntregaManager: {fileID: 1199865069}
 --- !u!114 &1199865069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1629,20 +1629,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d915c5871708324db57c2aaa39e9381, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZonaDeEntregaManager
+  objectSpawner: {fileID: 1199865071}
+  gameTimer: {fileID: 1199865070}
+  player1Controller: {fileID: 1393424396}
+  player2Controller: {fileID: 101104807}
   listaObjetivoText: {fileID: 1475087718}
+  panelOscuridad: {fileID: 527525911}
   endScreenUI: {fileID: 0}
   endScreenMessageText: {fileID: 0}
   p1ScoreText: {fileID: 0}
   p2ScoreText: {fileID: 0}
-  objectSpawner: {fileID: 0}
-  gameTimer: {fileID: 0}
-  player1Controller: {fileID: 1393424396}
-  player2Controller: {fileID: 101104807}
   currentMode: 0
   totalObjectsToWin: 5
-  coopObjectsToWin: 5
   coopTimePenaltyAmount: 3
-  versusSlowFactor: 0.5
 --- !u!114 &1199865070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1656,10 +1655,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameTimer
   tiempoTotal: 60
-  canvasPuntuacionJuego: {fileID: 0}
-  panelOscuridad: {fileID: 0}
-  panelResultadoFinal: {fileID: 0}
-  textoTimer: {fileID: 0}
+  tiempoRestante: 0
+  textoTimer: {fileID: 1836255746}
 --- !u!114 &1199865071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1672,7 +1669,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4360cb679f434a4099427768713c6d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectSpawner
-  baseObjectPrefab: {fileID: 6642589127002495371, guid: 866ca5663f0cd2345be3e24e66cb9592, type: 3}
   allPossibleObjectData:
   - {fileID: 11400000, guid: 1e51711679dacc94aa55792a9f67e752, type: 2}
   - {fileID: 11400000, guid: 1b03ac60d5fff1940bf819e9f75c7ea3, type: 2}
@@ -1710,6 +1706,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c2c19d99e3e3d0a4cb4d29657e6ed5bf, type: 2}
   - {fileID: 11400000, guid: 2d694db41b9458e4ebef0fac65412dc9, type: 2}
   - {fileID: 11400000, guid: 0d65dd53be5b7dd479b841f286e829d8, type: 2}
+  baseObjectPrefab: {fileID: 5781670763174503900, guid: 866ca5663f0cd2345be3e24e66cb9592, type: 3}
   spawnPoints:
   - {fileID: 1193767100}
   - {fileID: 575963208}
@@ -1722,9 +1719,7 @@ MonoBehaviour:
   - {fileID: 881149722}
   - {fileID: 1405151982}
   maxObjectsOnScreen: 10
-  totalObjectsRequired: 5
-  requiredObjects: []
-  spawnedObjects: []
+  spawnInterval: 3
 --- !u!1 &1258344161
 GameObject:
   m_ObjectHideFlags: 0
@@ -2722,7 +2717,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cac58f2e8661844c8873fbde04be9d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
-  pauseMenuUI: {fileID: 0}
 --- !u!4 &1565502061
 Transform:
   m_ObjectHideFlags: 0
@@ -2766,9 +2760,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameTimer
   tiempoTotal: 50
-  canvasPuntuacionJuego: {fileID: 1821600462}
-  panelOscuridad: {fileID: 527525911}
-  panelResultadoFinal: {fileID: 0}
+  tiempoRestante: 0
   textoTimer: {fileID: 1836255746}
 --- !u!114 &1565502064
 MonoBehaviour:
@@ -2782,13 +2774,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4360cb679f434a4099427768713c6d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectSpawner
-  baseObjectPrefab: {fileID: 0}
   allPossibleObjectData: []
+  baseObjectPrefab: {fileID: 0}
   spawnPoints: []
   maxObjectsOnScreen: 10
-  totalObjectsRequired: 5
-  requiredObjects: []
-  spawnedObjects: []
+  spawnInterval: 3
 --- !u!1 &1593807155
 GameObject:
   m_ObjectHideFlags: 0
@@ -2879,6 +2869,38 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1593860850 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2204932166336344371, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+  m_PrefabInstance: {fileID: 1897275025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!212 &1593860852 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 3177110520040417143, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+  m_PrefabInstance: {fileID: 1897275025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1593860854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593860850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bafe0d1ffa350524fbf0a23f1589c4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VisualTimerController
+  timerSprites:
+  - {fileID: 21300000, guid: 23dcaaacff6c9bd4aa1bb4e0394edc12, type: 3}
+  - {fileID: 21300000, guid: 022c6ff6e5d984c45b1483d0ba285576, type: 3}
+  - {fileID: 21300000, guid: c36d9ece472d5814eaad6c9e2ca94fff, type: 3}
+  - {fileID: 21300000, guid: 1e9416ecdb59a4346b9a3af361909407, type: 3}
+  - {fileID: 21300000, guid: 83cfb1dc8b7eb4c498ce54d389c02143, type: 3}
+  - {fileID: 21300000, guid: bf5dd81779b9f7643a7beb2d6a733fb8, type: 3}
+  - {fileID: 21300000, guid: 526585f62b12595499f254ebfda112ae, type: 3}
+  targetSpriteRenderer: {fileID: 1593860852}
+  targetUIImage: {fileID: 0}
 --- !u!1 &1610024030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3043,9 +3065,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameTimer
   tiempoTotal: 70
-  canvasPuntuacionJuego: {fileID: 0}
-  panelOscuridad: {fileID: 527525911}
-  panelResultadoFinal: {fileID: 0}
+  tiempoRestante: 0
   textoTimer: {fileID: 0}
 --- !u!1 &1818237195
 GameObject:
@@ -3516,6 +3536,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ventana
       objectReference: {fileID: 0}
+    - target: {fileID: 3177110520040417143, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+      propertyPath: m_Size.x
+      value: 3.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 3177110520040417143, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+      propertyPath: m_Size.y
+      value: 1.5625
+      objectReference: {fileID: 0}
+    - target: {fileID: 3177110520040417143, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 3177110520040417143, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6337612499337138341, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
       propertyPath: totalGameTime
       value: 50
@@ -3592,10 +3628,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6337612499337138341, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2204932166336344371, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1593860854}
   m_SourcePrefab: {fileID: 100100000, guid: 9c787f4d51cafd64c88636cc9caf815f, type: 3}
 --- !u!1 &1915070476
 GameObject:
@@ -3821,6 +3861,10 @@ PrefabInstance:
     - target: {fileID: 887281824598846860, guid: 36af90b108748144a9dab9a9f4fd4d8e, type: 3}
       propertyPath: displayDuration
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2254560369197485082, guid: 36af90b108748144a9dab9a9f4fd4d8e, type: 3}
+      propertyPath: m_IgnoreReversedGraphics
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2440812500519277726, guid: 36af90b108748144a9dab9a9f4fd4d8e, type: 3}
       propertyPath: m_Sprite
@@ -6231,9 +6275,9 @@ SceneRoots:
   - {fileID: 4201442691732669115}
   - {fileID: 8008344325827059764}
   - {fileID: 6445009450725387448}
-  - {fileID: 1610024033}
   - {fileID: 296509780}
-  - {fileID: 1827196368}
   - {fileID: 1565502061}
   - {fileID: 1821600463}
   - {fileID: 125378084}
+  - {fileID: 1610024033}
+  - {fileID: 1827196368}

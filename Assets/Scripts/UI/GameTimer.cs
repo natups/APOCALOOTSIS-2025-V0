@@ -5,56 +5,82 @@ public class GameTimer : MonoBehaviour
 {
     [Header("Configuración del Tiempo")]
     public float tiempoTotal = 60f;
-    private float tiempoRestante;
+    [HideInInspector]
+    public float tiempoRestante; 
     private bool isRunning = true;
 
-    // ÚNICA referencia de UI en este script: el texto del reloj.
     [Header("Referencias de UI")]
     public TextMeshProUGUI textoTimer; 
     
-    // Referencia al Manager para terminar el juego
+    [Header("Referencias de Scripts")]
     private ZonaDeEntregaManager zonaDeEntregaManager;
+    // REFERENCIA AL CONTROLADOR VISUAL
+    private VisualTimerController visualTimerController; 
 
-    void Start()
+    void Awake() 
     {
-        tiempoRestante = tiempoTotal;
-        // Buscamos el componente ZonaDeEntregaManager en el mismo objeto
+        // 1. Inicialización del Manager 
         zonaDeEntregaManager = GetComponent<ZonaDeEntregaManager>(); 
-        isRunning = true;
+        if (zonaDeEntregaManager == null)
+        {
+            zonaDeEntregaManager = FindObjectOfType<ZonaDeEntregaManager>();
+        }
 
         if (zonaDeEntregaManager == null)
         {
-            Debug.LogError("ERROR: El script 'ZonaDeEntregaManager' no se encontró en el mismo GameObject. ¡Asegúrate de que el Manager está en el mismo objeto que GameTimer!");
+            Debug.LogError("GameTimer: El script 'ZonaDeEntregaManager' no se encontró.");
             enabled = false;
         }
+
+        // 2. Inicialización del Controlador Visual
+        visualTimerController = FindObjectOfType<VisualTimerController>();
+        if (visualTimerController == null)
+        {
+            // Advertencia si la ventana visual no está
+            Debug.LogWarning("GameTimer: No se encontró un VisualTimerController en la escena. La visualización de sprites del tiempo no funcionará.");
+        }
+
+        tiempoRestante = tiempoTotal;
+        isRunning = true;
     }
 
     void Update()
     {
-        if (isRunning && tiempoRestante > 0)
+        if (!isRunning || tiempoRestante <= 0)
         {
-            tiempoRestante -= Time.deltaTime;
-            
-            if (textoTimer != null)
+            if (tiempoRestante <= 0 && isRunning) // Se acabó el tiempo en este frame
             {
-                int minutos = Mathf.FloorToInt(tiempoRestante / 60f);
-                int segundos = Mathf.FloorToInt(tiempoRestante % 60f);
-                textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+                tiempoRestante = 0;
+                isRunning = false;
+                if (zonaDeEntregaManager != null)
+                {
+                    zonaDeEntregaManager.FinalizeGame(true); 
+                }
             }
+            return;
         }
-        else if (isRunning && tiempoRestante <= 0)
+
+        // 1. Contar tiempo
+        tiempoRestante -= Time.deltaTime;
+        
+        // 2. Actualización de UI numérica
+        if (textoTimer != null)
         {
-            tiempoRestante = 0;
-            isRunning = false;
-            // Terminar el juego a través del Manager
-            if (zonaDeEntregaManager != null)
-            {
-                zonaDeEntregaManager.FinalizeGame(true); // isTimeOut = true
-            }
+            int minutos = Mathf.FloorToInt(tiempoRestante / 60f);
+            int segundos = Mathf.FloorToInt(tiempoRestante % 60f);
+            textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+        }
+
+        // 3. Comunicación a la Ventana 
+        if (visualTimerController != null)
+        {
+            // Pasamos el porcentaje de tiempo restante (1.0 al inicio, 0.0 al final)
+            float tiempoPorcentaje = tiempoRestante / tiempoTotal;
+            visualTimerController.UpdateVisualTimer(tiempoPorcentaje);
         }
     }
     
-    // El Manager llama a estos métodos
+    // Métodos llamados por el Manager
     public void AplicarPenalizacion(float cantidad)
     {
         if (isRunning)
@@ -70,5 +96,10 @@ public class GameTimer : MonoBehaviour
     public void DetenerTiempo()
     {
         isRunning = false;
+        // ¡NUEVO! Asegura que la ventana muestre el estado final (vacío)
+        if (visualTimerController != null)
+        {
+            visualTimerController.StopVisuals();
+        }
     }
 }
