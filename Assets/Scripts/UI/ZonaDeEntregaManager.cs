@@ -5,7 +5,6 @@ using TMPro;
 using System.Collections;
 using UnityEngine.UI; 
 
-// Nota: El enum GameMode se define en este mismo archivo.
 public enum GameMode { COOP, VERSUS }
 
 /// <summary>
@@ -56,13 +55,11 @@ public class ZonaDeEntregaManager : MonoBehaviour
     private int player2Score = 0; 
     private bool gameOver = false;
     
-    // NOTA: Eliminamos la lista de objetivos duplicada. Usaremos la lista del ObjectSpawner.
     
     private void Start()
     {
         if (endScreenUI != null) endScreenUI.SetActive(false);
 
-        // 1. Inicializar el Spawner y generar los objetos iniciales.
         if (objectSpawner != null)
         {
             objectSpawner.totalObjectsRequired = totalObjectsToWin;
@@ -71,6 +68,12 @@ public class ZonaDeEntregaManager : MonoBehaviour
         else
         {
             Debug.LogError("Referencia a ObjectSpawner NO asignada. Asigna el Spawner en el Inspector.");
+        }
+        
+        // CRÍTICO: Asigna la referencia de este manager al timer para que pueda finalizar el juego.
+        if (gameTimer != null)
+        {
+            gameTimer.SetManager(this);
         }
 
         UpdateObjectiveUI();
@@ -96,7 +99,6 @@ public class ZonaDeEntregaManager : MonoBehaviour
         
         ObjectData objectComponent = heldObject.GetComponent<ObjectData>();
         
-        // Obtiene el ScriptableObject de la data.
         Object carriedObjectData = objectComponent?.data;
 
         if (carriedObjectData == null)
@@ -107,39 +109,30 @@ public class ZonaDeEntregaManager : MonoBehaviour
             return;
         }
 
-        // CRÍTICO: Comprueba si el ScriptableObject entregado está en la lista de objetivos restantes del Spawner.
+        // Comprueba si el ScriptableObject entregado está en la lista de objetivos restantes del Spawner.
         if (objectSpawner.requiredObjects.Contains(carriedObjectData))
         {
             // --- ENTREGA CORRECTA ---
             
             Debug.Log($"Entrega Correcta: {carriedObjectData.objectName}");
 
-            // 1. Limpiar y actualizar estado
             objectSpawner.RemoveFromObjective(carriedObjectData); 
             objectsDeliveredCount++; 
             
-            // 2. Actualizar puntuación
             if (player == player1Controller) { player1Score++; }
             else if (player == player2Controller) { player2Score++; }
             
-            // 3. Limpiar objeto del jugador y del spawner. El spawner destruye el objeto.
             player.ClearHeldObject(); 
             objectSpawner.RemoveObjectFromList(heldObject);
             
-            // 4. Actualizar UI
             UpdateObjectiveUI();
             UpdateScoreUI();
             
-            // 5. Verificar victoria
             if (objectsDeliveredCount >= totalObjectsToWin)
             {
                 FinalizeGame(false); // isTimeOut = false (Victoria por objetivo)
             }
-            else
-            {
-                // Vuelve a generar objetos para rellenar el mapa
-                objectSpawner.SpawnInitialObjects();
-            }
+            // CRÍTICO: Se eliminó la llamada a objectSpawner.SpawnInitialObjects()
         }
         else
         {
@@ -149,35 +142,26 @@ public class ZonaDeEntregaManager : MonoBehaviour
 
             if (currentMode == GameMode.COOP)
             {
-                // Penalización de tiempo (solo en COOP)
                 if (gameTimer != null)
                 {
                     gameTimer.AplicarPenalizacion(coopTimePenaltyAmount);
                 }
                 
-                // Efecto de oscuridad
                 if (darknessController != null)
                 {
                     darknessController.FlashPenalty(); 
                 }
             }
             
-            // Penalización de lentitud (aplica a VERSUS y COOP)
             player.ApplySlowPenalty(); 
             
-            // Limpiar objeto del jugador y del spawner (se destruye el objeto)
             player.ClearHeldObject();
             objectSpawner.RemoveObjectFromList(heldObject);
             
-            // Vuelve a generar objetos
-            objectSpawner.SpawnInitialObjects();
+            // CRÍTICO: Se eliminó la llamada a objectSpawner.SpawnInitialObjects()
         }
         
-        // CRÍTICO: Comprobación de Game Over después de una penalización si el tiempo se agotó.
-        if (currentMode == GameMode.COOP && gameTimer != null && gameTimer.GetTimeRemaining() <= 0f)
-        {
-             FinalizeGame(true); // isTimeOut = true (Derrota por tiempo)
-        }
+        // CRÍTICO: Se eliminó la verificación de tiempo aquí. El GameTimer ahora maneja el timeout.
     }
 
     // ==========================================================
