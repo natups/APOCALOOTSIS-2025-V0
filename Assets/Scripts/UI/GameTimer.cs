@@ -10,16 +10,32 @@ public class GameTimer : MonoBehaviour
     private ZonaDeEntregaManager manager; // Referencia al Manager
     
     [Header("Referencias de UI")]
-    public Image panelOscuridad; 
+    public Image panelOscuridad; // Este control DEBE ser movido a DarknessController si existe
     
     [Header("Visualización del Timer")]
+    [Tooltip("El componente de texto que muestra el tiempo.")]
     public TextMeshProUGUI textoTimer; 
+    
+    // Campo para el objeto padre del HUD del temporizador (Texto + Fondo)
+    [Header("HUD del Timer")]
+    [Tooltip("Objeto padre del TextMeshPro y el fondo del temporizador para ocultar al inicio.")]
+    public GameObject timerRootHUD; 
 
     private bool juegoTerminado = false;
+    private bool isGameCounting = false; // Bandera para controlar cuándo empieza a contar
 
     void Start()
     {
-        tiempoInicio = Time.time;
+        // El temporizador DEBE empezar oculto y detenido.
+        if (timerRootHUD != null)
+        {
+            timerRootHUD.SetActive(false);
+        }
+        // Nota: Si el panelOscuridad se controla aquí, debe tener una visibilidad inicial mínima
+        if (panelOscuridad != null)
+        {
+            panelOscuridad.color = new Color(0, 0, 0, 0);
+        }
     }
 
     /// <summary>
@@ -29,12 +45,33 @@ public class GameTimer : MonoBehaviour
     {
         manager = managerInstance;
     }
+    
+    /// <summary>
+    /// Llamado por ObjectiveListUI al terminar la fase de memorización para empezar la cuenta.
+    /// </summary>
+    public void StartGame()
+    {
+        if (juegoTerminado || isGameCounting) return; // Evitar que se llame dos veces
+
+        // 1. Establecer el punto de inicio real para el cálculo de tiempo restante.
+        tiempoInicio = Time.time; 
+        
+        // 2. Mostrar el HUD del temporizador.
+        if (timerRootHUD != null)
+        {
+            timerRootHUD.SetActive(true);
+        }
+        
+        // 3. Empezar la cuenta.
+        isGameCounting = true;
+        Debug.Log("GameTimer: ¡Tiempo de juego iniciado!");
+    }
 
     void Update()
     {
-        if (juegoTerminado) 
+        // Solo ejecuta la lógica si el juego no terminó Y el contador está activo.
+        if (juegoTerminado || !isGameCounting) 
         {
-            // CRÍTICO: Si el juego terminó, sal del Update para que no se ejecute NADA más, ni el cálculo del tiempo ni la oscuridad.
             return;
         }
 
@@ -44,20 +81,16 @@ public class GameTimer : MonoBehaviour
         // 1. LÓGICA DE FIN DE TIEMPO
         if (tiempoRestante <= 0f)
         {
-            // Si el tiempo se agotó, notifica al Manager para finalizar.
+            DetenerTiempo(); 
+            
             if (manager != null)
             {
-                manager.FinalizeGame(true);
-            }
-            else
-            {
-                // Si el manager es null, al menos detiene la ejecución local.
-                juegoTerminado = true; 
+                manager.FinalizeGame(true); 
             }
             return;
         }
         
-        // 2. ACTUALIZACIÓN DE UI Y OSCURIDAD
+        // 2. ACTUALIZACIÓN DE UI
         if (textoTimer != null)
         {
             int minutos = Mathf.FloorToInt(tiempoRestante / 60);
@@ -65,13 +98,12 @@ public class GameTimer : MonoBehaviour
             textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
         }
 
-        // LÓGICA DE OSCURIDAD: Usa el porcentaje de tiempo transcurrido
+        // 3. LÓGICA DE OSCURIDAD: Si está aquí, la mantenemos.
         float t = tiempoTranscurrido / tiempoTotal;
         t = Mathf.Clamp01(t); 
 
         if (panelOscuridad != null)
         {
-            // El color va de transparente (0) a completamente negro (1) a medida que 't' aumenta.
             panelOscuridad.color = new Color(0, 0, 0, t);
         }
     }
@@ -81,6 +113,8 @@ public class GameTimer : MonoBehaviour
     /// </summary>
     public float GetTimeRemaining()
     {
+        if (!isGameCounting) return tiempoTotal; 
+        
         float tiempoRestante = tiempoTotal - (Time.time - tiempoInicio);
         return Mathf.Max(0f, tiempoRestante);
     }
@@ -90,9 +124,8 @@ public class GameTimer : MonoBehaviour
     /// </summary>
     public void AplicarPenalizacion(float cantidad)
     {
-        if (!juegoTerminado)
+        if (!juegoTerminado && isGameCounting)
         {
-            // Restar tiempo incrementando el 'tiempoInicio' para simular que pasó más tiempo.
             tiempoInicio += cantidad; 
             Debug.Log("¡Penalización! Restados " + cantidad + " segundos.");
         }
@@ -105,19 +138,20 @@ public class GameTimer : MonoBehaviour
     {
         if (juegoTerminado) return;
         juegoTerminado = true;
+        isGameCounting = false; 
         
-        // CRÍTICO: Congela la oscuridad en el estado final que tenía cuando terminó el juego.
+        // Congela la oscuridad en el estado final
         if (panelOscuridad != null)
         {
-            // Asegura que la oscuridad no siga cambiando después del final
             float t = (Time.time - tiempoInicio) / tiempoTotal;
             t = Mathf.Clamp01(t); 
             panelOscuridad.color = new Color(0, 0, 0, t);
         }
 
-        if (textoTimer != null) 
+        // Ocultar el HUD si ya no es necesario
+        if (timerRootHUD != null) 
         {
-            textoTimer.gameObject.SetActive(false); 
+             timerRootHUD.SetActive(false);
         }
     }
 }

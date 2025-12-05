@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8430339259343023507}
   - component: {fileID: 3177110520040417143}
-  - component: {fileID: 6337612499337138341}
   m_Layer: 0
   m_Name: Ventana
   m_TagString: Untagged
@@ -78,7 +77,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1797025001
-  m_SortingLayer: 7
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 4789000504727445463, guid: c41102dab4d2d254d9492355a6d5153f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -88,29 +87,6 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6337612499337138341
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2204932166336344371}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e73508133ad970448b643c7f278cf56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VisualGameTimer
-  totalGameTime: 30
-  timerSprites:
-  - {fileID: 4789000504727445463, guid: c41102dab4d2d254d9492355a6d5153f, type: 3}
-  - {fileID: 3102465650139038007, guid: ea64e8f6e21db464594b290f5e590da6, type: 3}
-  - {fileID: -645088794871672578, guid: a376c76fbcd66c349bcfd70ce5fdc9df, type: 3}
-  - {fileID: 2476584416883455754, guid: 755abf43bc9fa0f4f8b2126993b6a119, type: 3}
-  - {fileID: -5613993161152525692, guid: 452980f2668a60f43a5177175445581e, type: 3}
-  - {fileID: -3463578256287507238, guid: e28651b639313fe4d80b88172fbdadba, type: 3}
-  - {fileID: 6992211264791219593, guid: 3c2c0a3c42cda334285b7517a7310939, type: 3}
-  targetSpriteRenderer: {fileID: 3177110520040417143}
-  targetUIImage: {fileID: 0}
