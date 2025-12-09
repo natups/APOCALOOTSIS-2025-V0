@@ -144,7 +144,11 @@ public class ObjectSpawner : MonoBehaviour
             
             ObjectData newObject = Instantiate(baseObjectPrefab, spawnPoint.position, Quaternion.identity, transform);
             
-            newObject.data = objData; // Asigna los datos y actualiza la visualización
+            // ************ CORRECCIÓN CRÍTICA DE ASIGNACIÓN ************
+            // Antes: newObject.data = objData; <-- NO LLAMABA A ApplyData()
+            // Ahora:
+            newObject.SetData(objData); // <-- LLAMA A SetData, que llama a ApplyData() y fija la escala.
+            // **********************************************************
             
             spawnedObjects.Add(newObject);
             availableSpawnPoints.RemoveAt(randomSpawnIndex); 
