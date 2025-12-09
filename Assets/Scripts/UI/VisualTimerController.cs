@@ -2,7 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-// Este script debe adjuntarse al GameObject "Ventana" o a donde se muestre el reloj visual.
+/// <summary>
+/// Muestra el progreso del tiempo usando una secuencia de sprites (Ej: una ventana que se cierra).
+/// Este script es actualizado por GameTimer.cs.
+/// </summary>
 public class VisualTimerController : MonoBehaviour
 {
     [Header("Sprites del Temporizador")]
@@ -11,7 +14,6 @@ public class VisualTimerController : MonoBehaviour
 
     [Header("Componente de Visualización")]
     [Tooltip("El componente SpriteRenderer (para objetos 2D) o Image (para UI) que mostrará los sprites.")]
-    // La Ventana es probablemente un SpriteRenderer.
     public SpriteRenderer targetSpriteRenderer;
     public Image targetUIImage; 
 
@@ -31,15 +33,18 @@ public class VisualTimerController : MonoBehaviour
             return;
         }
         
-        // Muestra el primer sprite (lleno) al inicio
-        // Usamos el que esté asignado, dando prioridad al SpriteRenderer
-        if (targetSpriteRenderer != null)
+        // Muestra el primer sprite (lleno) al inicio.
+        if (timerSprites.Length > 0)
         {
-             targetSpriteRenderer.sprite = timerSprites[0];
-        }
-        else if (targetUIImage != null)
-        {
-             targetUIImage.sprite = timerSprites[0];
+             if (targetSpriteRenderer != null)
+             {
+                 targetSpriteRenderer.sprite = timerSprites[0];
+             }
+             else if (targetUIImage != null)
+             {
+                 targetUIImage.sprite = timerSprites[0];
+             }
+             currentSpriteIndex = 0;
         }
     }
     
@@ -51,25 +56,22 @@ public class VisualTimerController : MonoBehaviour
     {
         if (timerSprites == null || timerSprites.Length == 0) return;
 
-        // Aseguramos que el progreso esté entre 0 y 1
+        // 1. Aseguramos que el progreso esté entre 0 y 1
         timeProgress = Mathf.Clamp01(timeProgress);
 
         int maxIndex = timerSprites.Length - 1;
         
-        // La lógica invierte el progreso:
-        // Si timeProgress es 1.0 (lleno) -> index final 0
-        // Si timeProgress es 0.0 (vacío) -> index final maxIndex
-        
-        // 1. Calcula el índice proporcional (0 para lleno, maxIndex para vacío)
+        // 2. Calcula el índice (0 para lleno, maxIndex para vacío)
+        // La lógica invierte el progreso: (1 - timeProgress) * maxIndex
         int indexSpent = Mathf.FloorToInt((1f - timeProgress) * maxIndex);
         
-        // 2. Asegura límites
+        // 3. Asegura límites
         indexSpent = Mathf.Clamp(indexSpent, 0, maxIndex);
 
         if (indexSpent != currentSpriteIndex)
         {
             currentSpriteIndex = indexSpent;
-            // Actualiza el sprite
+            // 4. Actualiza el sprite
             if (targetSpriteRenderer != null)
             {
                 targetSpriteRenderer.sprite = timerSprites[currentSpriteIndex];
@@ -79,27 +81,25 @@ public class VisualTimerController : MonoBehaviour
                 targetUIImage.sprite = timerSprites[currentSpriteIndex];
             }
         }
-        
-        // --- AQUÍ IRÍA CUALQUIER OTRA MECÁNICA DE VENTANA ---
-        // Ejemplo: Si la ventana debe "temblar" o "acercar la amenaza" 
-        // a medida que timeProgress se acerca a cero, iría en esta sección.
     }
     
-    // Método para detener la ventana visualmente al final
+    /// <summary>
+    /// Detiene la ventana visualmente al final o resetea al inicio (muestra el último sprite).
+    /// </summary>
     public void StopVisuals()
     {
-        // Esto asegura que la ventana muestre el sprite de tiempo agotado (el último de la lista)
         if (timerSprites != null && timerSprites.Length > 0)
         {
             int lastIndex = timerSprites.Length - 1;
              if (targetSpriteRenderer != null)
-            {
+             {
                  targetSpriteRenderer.sprite = timerSprites[lastIndex];
-            }
-            else if (targetUIImage != null)
-            {
+             }
+             else if (targetUIImage != null)
+             {
                  targetUIImage.sprite = timerSprites[lastIndex];
-            }
+             }
+             currentSpriteIndex = lastIndex;
         }
     }
 }

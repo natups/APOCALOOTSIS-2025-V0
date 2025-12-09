@@ -2,27 +2,30 @@ using UnityEngine;
 using UnityEngine.UI; 
 using TMPro;
 
+/// <summary>
+/// Controla la cuenta regresiva del juego, el estado del tiempo y las penalizaciones.
+/// </summary>
 public class GameTimer : MonoBehaviour
 {
     [Header("Configuración del Tiempo")]
     public float tiempoTotal = 60f;
     private float tiempoInicio; 
-    private ZonaDeEntregaManager manager; // Referencia al Manager
+    private ZonaDeEntregaManager manager; 
     
-    [Header("Referencias de UI")]
-    public Image panelOscuridad; // Este control DEBE ser movido a DarknessController si existe
+    [Header("Referencias de UI y Visuales")]
+    [Tooltip("El script que actualiza el sprite de la 'Ventana' visual.")]
+    public VisualTimerController visualTimerController; 
     
     [Header("Visualización del Timer")]
-    [Tooltip("El componente de texto que muestra el tiempo.")]
+    [Tooltip("El componente de texto que muestra el tiempo (00:00).")]
     public TextMeshProUGUI textoTimer; 
     
-    // Campo para el objeto padre del HUD del temporizador (Texto + Fondo)
     [Header("HUD del Timer")]
     [Tooltip("Objeto padre del TextMeshPro y el fondo del temporizador para ocultar al inicio.")]
     public GameObject timerRootHUD; 
 
     private bool juegoTerminado = false;
-    private bool isGameCounting = false; // Bandera para controlar cuándo empieza a contar
+    private bool isGameCounting = false; 
 
     void Start()
     {
@@ -31,15 +34,16 @@ public class GameTimer : MonoBehaviour
         {
             timerRootHUD.SetActive(false);
         }
-        // Nota: Si el panelOscuridad se controla aquí, debe tener una visibilidad inicial mínima
-        if (panelOscuridad != null)
+        
+        // Se asegura que el VisualTimerController esté en el estado inicial
+        if (visualTimerController != null)
         {
-            panelOscuridad.color = new Color(0, 0, 0, 0);
+             visualTimerController.StopVisuals(); // Muestra el sprite de tiempo agotado/inicial.
         }
     }
 
     /// <summary>
-    /// Asigna la referencia al Manager para poder finalizar el juego.
+    /// Asigna la referencia al Manager.
     /// </summary>
     public void SetManager(ZonaDeEntregaManager managerInstance)
     {
@@ -47,29 +51,25 @@ public class GameTimer : MonoBehaviour
     }
     
     /// <summary>
-    /// Llamado por ObjectiveListUI al terminar la fase de memorización para empezar la cuenta.
+    /// Llamado por el Manager al terminar la fase de memorización para empezar la cuenta.
     /// </summary>
     public void StartGame()
     {
-        if (juegoTerminado || isGameCounting) return; // Evitar que se llame dos veces
+        if (juegoTerminado || isGameCounting) return; 
 
-        // 1. Establecer el punto de inicio real para el cálculo de tiempo restante.
         tiempoInicio = Time.time; 
         
-        // 2. Mostrar el HUD del temporizador.
         if (timerRootHUD != null)
         {
             timerRootHUD.SetActive(true);
         }
         
-        // 3. Empezar la cuenta.
         isGameCounting = true;
         Debug.Log("GameTimer: ¡Tiempo de juego iniciado!");
     }
 
     void Update()
     {
-        // Solo ejecuta la lógica si el juego no terminó Y el contador está activo.
         if (juegoTerminado || !isGameCounting) 
         {
             return;
@@ -85,12 +85,12 @@ public class GameTimer : MonoBehaviour
             
             if (manager != null)
             {
-                manager.FinalizeGame(true); 
+                manager.FinalizeGame(true); // Se acabó el tiempo
             }
             return;
         }
         
-        // 2. ACTUALIZACIÓN DE UI
+        // 2. ACTUALIZACIÓN DE UI (Digital)
         if (textoTimer != null)
         {
             int minutos = Mathf.FloorToInt(tiempoRestante / 60);
@@ -98,13 +98,12 @@ public class GameTimer : MonoBehaviour
             textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
         }
 
-        // 3. LÓGICA DE OSCURIDAD: Si está aquí, la mantenemos.
-        float t = tiempoTranscurrido / tiempoTotal;
-        t = Mathf.Clamp01(t); 
-
-        if (panelOscuridad != null)
+        // 3. ACTUALIZACIÓN DE UI (Visual/Sprite)
+        // timeProgress va de 1.0 (lleno) a 0.0 (vacío)
+        float timeProgress = 1f - (tiempoTranscurrido / tiempoTotal);
+        if (visualTimerController != null)
         {
-            panelOscuridad.color = new Color(0, 0, 0, t);
+            visualTimerController.UpdateVisualTimer(timeProgress);
         }
     }
 
@@ -126,13 +125,14 @@ public class GameTimer : MonoBehaviour
     {
         if (!juegoTerminado && isGameCounting)
         {
+            // Sumar al tiempo de inicio es equivalente a restar tiempo restante
             tiempoInicio += cantidad; 
             Debug.Log("¡Penalización! Restados " + cantidad + " segundos.");
         }
     }
 
     /// <summary>
-    /// Detiene el tiempo y congela el estado de la UI y la oscuridad.
+    /// Detiene el tiempo y congela el estado.
     /// </summary>
     public void DetenerTiempo()
     {
@@ -140,18 +140,15 @@ public class GameTimer : MonoBehaviour
         juegoTerminado = true;
         isGameCounting = false; 
         
-        // Congela la oscuridad en el estado final
-        if (panelOscuridad != null)
-        {
-            float t = (Time.time - tiempoInicio) / tiempoTotal;
-            t = Mathf.Clamp01(t); 
-            panelOscuridad.color = new Color(0, 0, 0, t);
-        }
-
-        // Ocultar el HUD si ya no es necesario
         if (timerRootHUD != null) 
         {
              timerRootHUD.SetActive(false);
+        }
+        
+        // Congela el temporizador visual en el estado final
+        if (visualTimerController != null)
+        {
+            visualTimerController.StopVisuals();
         }
     }
 }

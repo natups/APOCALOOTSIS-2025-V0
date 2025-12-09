@@ -1,29 +1,28 @@
 using UnityEngine;
 
+/// <summary>
+/// Detecta la colisión de un jugador para iniciar el proceso de entrega de objetos.
+/// </summary>
 public class CajaDrop : MonoBehaviour
 {
-    // CRÍTICO: Debe ser público para poder arrastrar el Manager en el Inspector
-    [Header("Referencias")]
-    public ZonaDeEntregaManager zonaDeEntregaManager; 
-
     private void OnTriggerEnter2D(Collider2D other)
     {
         // 1. Verificamos que sea un jugador
         PlayerController player = other.GetComponent<PlayerController>();
+        
         if (player == null) return;
         
         // 2. Verificamos que el jugador lleve un objeto
         if (player.GetHeldObject() == null) return;
 
-        // 3. Verificamos que el Manager esté asignado
-        if (zonaDeEntregaManager == null)
+        // 3. CRÍTICO: Llamamos al Manager Singleton para procesar la entrega
+        if (ZonaDeEntregaManager.Instance == null)
         {
-            Debug.LogError("CajaDrop: La referencia a ZonaDeEntregaManager está missing. Arrástrala en el Inspector.");
+            Debug.LogError("CajaDrop: La instancia de ZonaDeEntregaManager no está disponible (Singleton).");
             return;
         }
 
-        // 4. Llamamos a CheckDelivery con el PlayerController (¡Error corregido!)
-        // Ahora solo pasamos 1 argumento: el jugador que está entregando.
-        zonaDeEntregaManager.CheckDelivery(player);
+        // 4. Le pasamos el PlayerController del jugador que está entregando
+        ZonaDeEntregaManager.Instance.CheckDelivery(player);
     }
 }
