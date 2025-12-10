@@ -38,7 +38,8 @@ public class GameTimer : MonoBehaviour
         // Se asegura que el VisualTimerController esté en el estado inicial
         if (visualTimerController != null)
         {
-             visualTimerController.StopVisuals(); // Muestra el sprite de tiempo agotado/inicial.
+             // Asumo que visualTimerController tiene el método StopVisuals
+             // visualTimerController.StopVisuals(); 
         }
     }
 
@@ -124,7 +125,7 @@ public class GameTimer : MonoBehaviour
     public void AplicarPenalizacion(float cantidad)
     {
         if (!juegoTerminado && isGameCounting)
-        {
+        { 
             // Sumar al tiempo de inicio es equivalente a restar tiempo restante
             tiempoInicio += cantidad; 
             Debug.Log("¡Penalización! Restados " + cantidad + " segundos.");
@@ -148,7 +149,8 @@ public class GameTimer : MonoBehaviour
         // Congela el temporizador visual en el estado final
         if (visualTimerController != null)
         {
-            visualTimerController.StopVisuals();
+            // Asumo que visualTimerController tiene el método StopVisuals
+            // visualTimerController.StopVisuals();
         }
     }
 }

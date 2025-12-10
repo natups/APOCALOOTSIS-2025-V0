@@ -139,7 +139,6 @@ public class ZonaDeEntregaManager : MonoBehaviour
         // 3. Inicia los procesos de juego
         if (gameTimer != null) gameTimer.StartGame(); 
         if (objectSpawner != null) objectSpawner.StartSpawning();
-        // NOTA: Si este script no existe o no tiene el método, Unity lo ignorará.
         // if (darknessController != null) darknessController.StartDarknessIncrease(); 
         
         Debug.Log("Fase de Juego Iniciada y componentes activados.");
@@ -169,7 +168,6 @@ public class ZonaDeEntregaManager : MonoBehaviour
         }
 
         // Verifica si el objeto entregado está en la lista de objetivos requeridos
-        // La lista de objetivos requeridos en ObjectSpawner debe ser List<Object>
         if (objectSpawner.requiredObjects.Contains(carriedObjectData))
         {
             // --- ENTREGA CORRECTA ---
@@ -201,12 +199,12 @@ public class ZonaDeEntregaManager : MonoBehaviour
             if (currentMode == GameMode.COOP)
             {
                 if (gameTimer != null) gameTimer.AplicarPenalizacion(coopTimePenaltyAmount);
-                // NOTA: Si este script no existe o no tiene el método, Unity lo ignorará.
                 // if (darknessController != null) darknessController.FlashPenalty(); 
             }
             
-            // Asumo que este método existe en PlayerController
-            // player.ApplySlowPenalty(); 
+            // CRÍTICO: Aplica la penalización de lentitud (SLOW) al jugador que falló.
+            player.ApplySlowPenalty(); 
+            
             player.ClearHeldObject();
             Destroy(heldObject); // Elimina el objeto del mundo
             
@@ -226,7 +224,6 @@ public class ZonaDeEntregaManager : MonoBehaviour
         
         // Detiene todos los procesos
         if (gameTimer != null) gameTimer.DetenerTiempo(); 
-        // NOTA: Si este script no existe o no tiene el método, Unity lo ignorará.
         // if (objectSpawner != null) objectSpawner.StopSpawning();
         // if (darknessController != null) darknessController.StopDarknessIncrease(); 
 

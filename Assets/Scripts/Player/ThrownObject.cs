@@ -36,19 +36,16 @@ public class ThrownObject : MonoBehaviour
             Vector2 impactPoint = collision.GetContact(0).point; 
             Instantiate(charcoPrefab, impactPoint, Quaternion.identity);
             
-            // Si golpeamos a un jugador, podemos aturdirlo ligeramente (opcional)
-            if (hitPlayer != null)
-            {
-                 // hitPlayer.GetHit(); 
-            }
+            // CRÍTICO: Se elimina la llamada hitPlayer.GetHit() para no aplicar stun.
+            // La penalización de ralentización proviene únicamente del charco que se genera.
         }
         
         // 3. EFECTO VISUAL DE ROMPERSE (Autodestrucción integrada)
         if (botellaRotaPrefab != null)
         {
-             GameObject brokenBottleFX = Instantiate(botellaRotaPrefab, transform.position, Quaternion.identity);
-             // Autodestrucción después de un tiempo corto
-             Destroy(brokenBottleFX, roturaDuration); 
+              GameObject brokenBottleFX = Instantiate(botellaRotaPrefab, transform.position, Quaternion.identity);
+              // Autodestrucción después de un tiempo corto
+              Destroy(brokenBottleFX, roturaDuration); 
         }
 
         // 4. Destruir la botella que fue lanzada (este objeto)

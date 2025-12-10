@@ -18,6 +18,14 @@ public class PlayerController : MonoBehaviour
     public bool isSlowed = false; 
     private Color originalColor; 
     
+    // Duración estándar del efecto de ralentización por penalización (charco o entrega incorrecta)
+    [Tooltip("Duración en segundos del efecto SLOW.")]
+    public float slowDuration = 5f; 
+    
+    // Factor de velocidad para la penalización (ej: 0.5f para 50% de velocidad)
+    [Tooltip("Factor de multiplicación para la velocidad base durante la penalización.")]
+    public float defaultSlowFactor = 0.5f; 
+    
     [Header("Límite de Sabotaje")]
     public int maxBottles = 3; 
     private int bottlesRemaining; 
@@ -40,7 +48,7 @@ public class PlayerController : MonoBehaviour
     
     [Header("Lógica de Sabotaje (Versus)")]
     public GameObject botellaPrefab; 
-    public float stunDuration = 0.5f; 
+    // Se elimina stunDuration, ya no se usa.
     
     [HideInInspector] public GameObject heldObject;
     private Rigidbody2D heldObjectRB;
@@ -99,6 +107,8 @@ public class PlayerController : MonoBehaviour
             movement = movement.normalized; 
             
             // Bloquea sprint si está ralentizado
+            // Se asume que RunSpeed no debería usarse si está ralentizado, 
+            // y que el movimiento general está limitado por el walkSpeed modificado.
             isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
         }
 
@@ -148,6 +158,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
+        // La velocidad actual depende de si está corriendo O si está ralentizado (isSlowed)
+        // Si está ralentizado, la velocidad de movimiento será walkSpeed (modificado por SlowRoutine)
         float currentSpeed = (isSprinting && !isHolding) ? runSpeed : walkSpeed;
         Vector2 newVelocity = movement * currentSpeed;
         rb.linearVelocity = newVelocity;
@@ -260,7 +272,7 @@ public class PlayerController : MonoBehaviour
 
         if (isHolding)
         {
-             DropObject(); 
+              DropObject(); 
         }
         
         // 2. Disminuir el contador y actualizar la UI
@@ -292,64 +304,47 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- FUNCIÓN PÚBLICA PARA SER GOLPEADO (Ralentización por impacto) ---
-    public void GetHit()
-    {
-        if (canMove)
-        {
-            StartCoroutine(StunRoutine());
-        }
-    }
-
-    // --- CORUTINA DE ATURDIMIENTO ---
-    private IEnumerator StunRoutine()
-    {
-        canMove = false;
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = Color.red;
-        }
-        
-        if (isHolding)
-        {
-             DropObject();
-        }
-
-        yield return new WaitForSeconds(stunDuration); 
-
-        canMove = true;
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = originalColor;
-        }
-    }
-
-    // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO ---
+    // --- FUNCIÓN PÚBLICA PARA SER GOLPEADO (AHORA OBSOLETA, EL IMPACTO DE BOTELLA ES SOLO VISUAL ANTES DEL CHARCO) ---
+    // Se elimina GetHit() y StunRoutine() ya que el efecto es solo SLOW por el charco.
+    
+    // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO Y PENALIZACIÓN DE ENTREGA ---
+    
+    /// <summary>
+    /// Inicia el efecto de ralentización y parpadeo.
+    /// Si ya está ralentizado, reinicia la duración.
+    /// </summary>
+    /// <param name="factor">Factor de ralentización (ej: 0.5f).</param>
     public void ApplySlow(float factor)
     {
+        // Detiene la corutina existente para evitar conflictos y reinicia la duración
         StopCoroutine("SlowRoutine");
         StartCoroutine("SlowRoutine", factor);
     }
-
-    // ** MÉTODOS REQUERIDOS POR ZONADEENTREGAMANAGER **
+    
+    /// <summary>
+    /// Llamado por ZonaDeEntregaManager cuando se entrega un objeto incorrecto.
+    /// Utiliza el factor y la duración predeterminados.
+    /// </summary>
     public void ApplySlowPenalty()
     {
-        ApplySlow(0.5f); // 50% de velocidad por defecto
+        ApplySlow(defaultSlowFactor); 
     }
 
     private IEnumerator SlowRoutine(float factor)
     {
-        float duration = 5f; 
+        // Si ya está ralentizado, esto detiene el ciclo anterior y reinicia
         isSlowed = true; 
         
-        float originalWalkSpeed = baseWalkSpeed; 
-        walkSpeed = originalWalkSpeed * factor;
+        // Aplicar la reducción de velocidad
+        walkSpeed = baseWalkSpeed * factor;
+        runSpeed = baseWalkSpeed * factor * (runSpeed / baseWalkSpeed); // Mantener la proporción
         
         float blinkDuration = 0.15f; 
         float timeElapsed = 0f;
 
-        while (timeElapsed < duration) 
+        while (timeElapsed < slowDuration) 
         {
+            // Lógica de parpadeo rojo
             if (spriteRenderer != null)
             {
                 spriteRenderer.color = Color.red; 
@@ -360,13 +355,16 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
+                // Si no hay renderer, esperamos y seguimos contando
                 yield return null;
             }
 
             timeElapsed += (blinkDuration * 2); 
         }
 
-        walkSpeed = originalWalkSpeed; 
+        // Restauración
+        walkSpeed = baseWalkSpeed; 
+        runSpeed = baseWalkSpeed * 2f; // Asumiendo que runSpeed es el doble que la base, ajusta si es necesario
         isSlowed = false; 
         if (spriteRenderer != null)
         {

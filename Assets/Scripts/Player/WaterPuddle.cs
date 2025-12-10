@@ -4,7 +4,8 @@ using System.Collections;
 public class WaterPuddle : MonoBehaviour
 {
     [Header("Efecto de Charco")]
-    public float ralentizacionFactor = 0.5f; // Factor que se envía al PlayerController (ej: 0.5 = 50% de velocidad)
+    [Tooltip("Factor de multiplicación de la velocidad (0.5 = 50% de velocidad).")]
+    public float ralentizacionFactor = 0.5f; 
     public float duracionCharco = 6f; // Duración del charco visible antes de desaparecer
 
     private void Start()
@@ -19,8 +20,8 @@ public class WaterPuddle : MonoBehaviour
         
         if (hitPlayer != null)
         {
-            // Cuando un jugador entra, llamamos a la función del PlayerController.
-            // El PlayerController es el que gestiona los 5 segundos de duración.
+            // Cuando un jugador entra, llamamos a ApplySlow. 
+            // La duración del efecto (5 segundos) es gestionada internamente por PlayerController.
             hitPlayer.ApplySlow(ralentizacionFactor);
         }
     }
