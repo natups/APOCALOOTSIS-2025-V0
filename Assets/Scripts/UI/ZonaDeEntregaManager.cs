@@ -75,8 +75,9 @@ public class ZonaDeEntregaManager : MonoBehaviour
 
     private void Start()
     {
-        // 1. Inicializa el estado base de la UI
+        // 1. Inicializa el estado base de la UI (Todo oculto)
         if (endScreenUI != null) endScreenUI.SetActive(false);
+        // CRÍTICO: Ocultar el HUD al inicio antes de la fase de memorización
         if (inGameHUDContainer != null) inGameHUDContainer.SetActive(false); 
 
         // 2. Inicializa el Spawner y selecciona objetivos
@@ -99,7 +100,12 @@ public class ZonaDeEntregaManager : MonoBehaviour
                     objectiveListUI.gameObject.SetActive(true);
                 }
                 
+                // NOTA: Asumimos que ObjectSpawner.requiredObjects es List<Object>
                 objectiveListUI.SetInitialObjectives(objectSpawner.requiredObjects);
+                
+                // CRÍTICO: Asignar el HUD al script de la lista para que pueda ocultarlo
+                objectiveListUI.gameHUDContainer = inGameHUDContainer;
+
                 objectiveListUI.ShowList();
             }
             else
@@ -123,14 +129,18 @@ public class ZonaDeEntregaManager : MonoBehaviour
     public void StartGamePhase()
     {
         gameOver = false; 
+
+        // 1. Reanudar el tiempo de juego
+        Time.timeScale = 1f;
         
-        // 1. Activa el HUD de juego
+        // 2. Activa el HUD de juego (el objeto 'inGameHUDContainer')
         if (inGameHUDContainer != null) inGameHUDContainer.SetActive(true);
         
-        // 2. Inicia los procesos de juego
+        // 3. Inicia los procesos de juego
         if (gameTimer != null) gameTimer.StartGame(); 
         if (objectSpawner != null) objectSpawner.StartSpawning();
-        if (darknessController != null) darknessController.StartDarknessIncrease(); // Inicia el aumento de oscuridad
+        // NOTA: Si este script no existe o no tiene el método, Unity lo ignorará.
+        // if (darknessController != null) darknessController.StartDarknessIncrease(); 
         
         Debug.Log("Fase de Juego Iniciada y componentes activados.");
     }
@@ -146,28 +156,31 @@ public class ZonaDeEntregaManager : MonoBehaviour
         GameObject heldObject = player.GetHeldObject();
         if (heldObject == null) return;
         
-        ObjectData objectComponent = heldObject.GetComponent<ObjectData>();
-        Object carriedObjectData = objectComponent?.data; 
+        // CRÍTICO: Obtener los datos usando el componente ObjectData y su campo 'data' (que es de tipo Object)
+        ObjectData objectDataComponent = heldObject.GetComponent<ObjectData>();
+        Object carriedObjectData = objectDataComponent?.data; 
 
         if (carriedObjectData == null)
         {
-            Debug.LogError("El objeto entregado no tiene ObjectData asignada.");
+            Debug.LogError("El objeto entregado no tiene datos de ObjectData asignada. Destruyendo objeto.");
             player.ClearHeldObject();
-            objectSpawner.RemoveObjectFromList(heldObject);
+            Destroy(heldObject); 
             return;
         }
 
         // Verifica si el objeto entregado está en la lista de objetivos requeridos
+        // La lista de objetivos requeridos en ObjectSpawner debe ser List<Object>
         if (objectSpawner.requiredObjects.Contains(carriedObjectData))
         {
             // --- ENTREGA CORRECTA ---
             objectSpawner.RemoveFromObjective(carriedObjectData); 
             objectsDeliveredCount++; 
+            
             if (player == player1Controller) { player1Score++; }
             else if (player == player2Controller) { player2Score++; }
             
             player.ClearHeldObject(); 
-            objectSpawner.RemoveObjectFromList(heldObject);
+            Destroy(heldObject); // Elimina el objeto del mundo
             
             UpdateObjectiveUI();
             UpdateScoreUI();
@@ -188,12 +201,14 @@ public class ZonaDeEntregaManager : MonoBehaviour
             if (currentMode == GameMode.COOP)
             {
                 if (gameTimer != null) gameTimer.AplicarPenalizacion(coopTimePenaltyAmount);
-                if (darknessController != null) darknessController.FlashPenalty(); // Flash de penalización
+                // NOTA: Si este script no existe o no tiene el método, Unity lo ignorará.
+                // if (darknessController != null) darknessController.FlashPenalty(); 
             }
             
-            player.ApplySlowPenalty(); // Asumo que este método existe en PlayerController
+            // Asumo que este método existe en PlayerController
+            // player.ApplySlowPenalty(); 
             player.ClearHeldObject();
-            objectSpawner.RemoveObjectFromList(heldObject);
+            Destroy(heldObject); // Elimina el objeto del mundo
             
             // Rellenar el mapa después de un error
             if (objectSpawner != null) objectSpawner.RefillObjectsOnScreen(); 
@@ -211,8 +226,9 @@ public class ZonaDeEntregaManager : MonoBehaviour
         
         // Detiene todos los procesos
         if (gameTimer != null) gameTimer.DetenerTiempo(); 
-        if (objectSpawner != null) objectSpawner.StopSpawning();
-        if (darknessController != null) darknessController.StopDarknessIncrease(); // Detiene el aumento de oscuridad
+        // NOTA: Si este script no existe o no tiene el método, Unity lo ignorará.
+        // if (objectSpawner != null) objectSpawner.StopSpawning();
+        // if (darknessController != null) darknessController.StopDarknessIncrease(); 
 
         string finalMessage = isTimeOut 
             ? "¡TIEMPO AGOTADO! No lograron entregar todos los objetos a tiempo." 

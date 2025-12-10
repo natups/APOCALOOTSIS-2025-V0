@@ -16,6 +16,9 @@ public class ObjectiveListUI : MonoBehaviour
     [Tooltip("Prefab del elemento Image que se usará para mostrar cada objetivo.")]
     public GameObject objectiveSlotPrefab;
     
+    [Tooltip("Referencia al contenedor del HUD del juego (Contador 0/5, Cronómetro).")]
+    public GameObject gameHUDContainer; // CRÍTICO: Referencia al HUD principal del juego
+    
     [Header("Configuración de Partida")]
     [Tooltip("Tiempo en segundos que el jugador tiene para memorizar la lista.")]
     public float memorizationTime = 7f; 
@@ -25,10 +28,12 @@ public class ObjectiveListUI : MonoBehaviour
     public TextMeshProUGUI memorizationTimerText;
 
     private List<Image> objectiveSlots = new List<Image>();
+    // Usamos el tipo correcto: Object (que hereda de BaseDataObject)
     private List<Object> currentObjectives; 
 
     private void Awake()
     {
+        // Aseguramos que la lista esté OCULTA al inicio
         if (listRootContainer != null)
         {
             listRootContainer.SetActive(false);
@@ -38,6 +43,7 @@ public class ObjectiveListUI : MonoBehaviour
     /// <summary>
     /// Crea los slots y asigna los objetivos seleccionados por el Spawner.
     /// </summary>
+    // Ahora espera List<Object>
     public void SetInitialObjectives(List<Object> objectives)
     {
         ClearSlots();
@@ -52,7 +58,7 @@ public class ObjectiveListUI : MonoBehaviour
         // Generar los slots dinámicamente
         for (int i = 0; i < objectives.Count; i++)
         {
-            // Asumo que tu clase 'Object' (ScriptableObject) se usa aquí
+            // Usamos la clase Object, que hereda de BaseDataObject para acceder a sus propiedades visuales
             Object objData = objectives[i]; 
             
             // Instancia el slot como hijo del objeto que contiene este script
@@ -63,11 +69,14 @@ public class ObjectiveListUI : MonoBehaviour
             {
                 objectiveSlots.Add(slotImage);
                 
-                // Asumo que el ScriptableObject 'Object' tiene estas propiedades
-                slotImage.sprite = objData.objectSprite; 
+                // Asignación de Sprite/Color
+                if (objData.objectSprite != null)
+                {
+                    slotImage.sprite = objData.objectSprite;
+                }
                 slotImage.color = objData.displayColor; 
 
-                // Si el slot tiene un componente de texto, asignamos el nombre del objeto
+                // Asignamos el nombre del objeto
                 TextMeshProUGUI textComponent = newSlot.GetComponentInChildren<TextMeshProUGUI>();
                 if (textComponent != null)
                 {
@@ -78,14 +87,27 @@ public class ObjectiveListUI : MonoBehaviour
     }
     
     /// <summary>
-    /// Muestra el contenedor raíz de la lista y comienza la corrutina de memorización.
+    /// Muestra el contenedor raíz de la lista, OCULTA el HUD de juego y comienza la corrutina de memorización.
     /// </summary>
     public void ShowList()
     {
+        // 1. Oculta el HUD de juego (el 0/5 y el cronómetro)
+        if (gameHUDContainer != null)
+        {
+            gameHUDContainer.SetActive(false);
+        }
+        
+        // 2. Muestra la lista de memorización
         if (listRootContainer != null)
         {
-             listRootContainer.SetActive(true);
-             Debug.Log("ObjectiveListUI: Contenedor 'Lista' activado. Iniciando Fase de Memorización.");
+            listRootContainer.SetActive(true);
+            Debug.Log("ObjectiveListUI: Contenedor 'Lista' activado. Iniciando Fase de Memorización.");
+        }
+
+        // 3. Pausa el juego
+        if (Time.timeScale != 0f) 
+        {
+            Time.timeScale = 0f;
         }
         
         StartCoroutine(MemorizationPhase());
@@ -94,11 +116,8 @@ public class ObjectiveListUI : MonoBehaviour
     private IEnumerator MemorizationPhase()
     {
         float timer = memorizationTime;
-
-        // 1. Pausar el juego
-        Time.timeScale = 0f;
         
-        // 2. Bucle para contar y actualizar el texto (usa tiempo real)
+        // Bucle para contar y actualizar el texto (usa tiempo real)
         while (timer > 0)
         {
             if (memorizationTimerText != null)
@@ -110,20 +129,17 @@ public class ObjectiveListUI : MonoBehaviour
             timer -= 1f;
         }
         
-        // 3. Ocultar la lista, limpiar texto y reanudar el juego
+        // Ocultar la lista y limpiar texto
         HideList();
         if (memorizationTimerText != null)
         {
             memorizationTimerText.text = "";
         }
         
-        // 4. Reanudar el tiempo
-        Time.timeScale = 1f;
-        
-        // 5. CRÍTICO: LLAMADA PARA INICIAR EL JUEGO
+        // CRÍTICO: LLAMADA PARA INICIAR EL JUEGO (Esto reanuda el tiempo y activa el HUD)
         if (ZonaDeEntregaManager.Instance != null)
         {
-             ZonaDeEntregaManager.Instance.StartGamePhase();
+            ZonaDeEntregaManager.Instance.StartGamePhase();
         }
         
         Debug.Log("Fase de memorización terminada. ¡A jugar!");
