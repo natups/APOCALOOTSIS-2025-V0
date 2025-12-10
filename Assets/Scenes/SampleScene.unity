@@ -728,8 +728,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.0030517578, y: -198}
-  m_SizeDelta: {x: -443.07, y: -796.1384}
+  m_AnchoredPosition: {x: 0, y: -183}
+  m_SizeDelta: {x: -292.877, y: -935.7916}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &568299246
 MonoBehaviour:
@@ -768,8 +768,8 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 100}
-  m_Spacing: {x: 0, y: 0}
+  m_CellSize: {x: 85, y: 80}
+  m_Spacing: {x: 20, y: 20}
   m_Constraint: 1
   m_ConstraintCount: 5
 --- !u!114 &568299248
@@ -801,7 +801,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 16
 --- !u!222 &568299249
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1601,11 +1601,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.6875, y: 1.125}
   m_EdgeRadius: 0
---- !u!1 &1094997994 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5175800715037240316, guid: 9c3ea53cdcb10ee46a5ec0459f94d90c, type: 3}
-  m_PrefabInstance: {fileID: 6445009450725387448}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1114300905
 GameObject:
   m_ObjectHideFlags: 0
@@ -1858,9 +1853,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed1d6ce22cfb04e47ad4afff9962fb04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DarknessController
-  fullScreenOverlay: {fileID: 1094997994}
-  flashColor: {r: 1, g: 0, b: 0, a: 0.7}
-  flashDuration: 0.2
 --- !u!1 &1258344161
 GameObject:
   m_ObjectHideFlags: 0
@@ -5972,7 +5964,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.00042309612, y: -0.0028915424}
   m_SpriteTilingProperty:
     border: {x: 0.049999997, y: 0.049999997, z: 0.049999997, w: 0.049999997}
     pivot: {x: 0.5, y: 0.5}
@@ -5982,7 +5974,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.29, y: 0.16}
+  m_Size: {x: 0.13005711, y: 0.11359635}
   m_EdgeRadius: 0
 --- !u!1 &7773057281399922334
 GameObject:
