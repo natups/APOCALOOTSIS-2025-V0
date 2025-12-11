@@ -299,6 +299,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4473990412684573498, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4473990412684573498, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
       propertyPath: m_DefaultControlScheme
       value: 
       objectReference: {fileID: 0}
@@ -311,12 +315,20 @@ PrefabInstance:
       value: 0.7589401
       objectReference: {fileID: 0}
     - target: {fileID: 4797967148207261895, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4797967148207261895, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
       propertyPath: m_Offset.x
       value: -0.032784075
       objectReference: {fileID: 0}
     - target: {fileID: 4797967148207261895, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
       propertyPath: m_Offset.y
       value: -0.3859784
+      objectReference: {fileID: 0}
+    - target: {fileID: 4797967148207261895, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4797967148207261895, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.y
@@ -326,6 +338,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: -5089442742214279534, guid: feef40fcb283e13438ef131356de1f90, type: 3}
+    - target: {fileID: 5326320698344915455, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5326320698344915455, guid: d980e120f94eb8a4899b421a191357c0, type: 3}
       propertyPath: m_SortingOrder
       value: 10
@@ -997,7 +1013,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 2
+  m_Radius: 1
 --- !u!1 &881149721
 GameObject:
   m_ObjectHideFlags: 0
@@ -2503,7 +2519,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 2
+  m_Radius: 1
 --- !u!1 &1475087716
 GameObject:
   m_ObjectHideFlags: 0
