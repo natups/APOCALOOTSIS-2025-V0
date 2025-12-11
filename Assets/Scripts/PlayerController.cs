@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     
     // --- VARIABLES DE RALENTIZACIÓN/SABOTAJE ---
     private float baseWalkSpeed; 
+    private float baseRunSpeed; // Guardar la velocidad base de corrida para restauración
     
     [Header("Lógica de Ralentización")]
     public bool isSlowed = false; 
@@ -74,6 +75,7 @@ public class PlayerController : MonoBehaviour
         
         // --- INICIALIZACIÓN ---
         baseWalkSpeed = walkSpeed; 
+        baseRunSpeed = runSpeed; // Guardamos la velocidad de correr original
         bottlesRemaining = maxBottles; 
         
         if (spriteRenderer != null)
@@ -107,8 +109,6 @@ public class PlayerController : MonoBehaviour
             movement = movement.normalized; 
             
             // Bloquea sprint si está ralentizado
-            // Se asume que RunSpeed no debería usarse si está ralentizado, 
-            // y que el movimiento general está limitado por el walkSpeed modificado.
             isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
         }
 
@@ -159,7 +159,6 @@ public class PlayerController : MonoBehaviour
         }
         
         // La velocidad actual depende de si está corriendo O si está ralentizado (isSlowed)
-        // Si está ralentizado, la velocidad de movimiento será walkSpeed (modificado por SlowRoutine)
         float currentSpeed = (isSprinting && !isHolding) ? runSpeed : walkSpeed;
         Vector2 newVelocity = movement * currentSpeed;
         rb.linearVelocity = newVelocity;
@@ -173,9 +172,10 @@ public class PlayerController : MonoBehaviour
             pickableObject = other.gameObject;
         }
         
-        // ** Lógica de DeliveryZone Reincorporada (Necesaria para que funcione la entrega) **
+        // ** Lógica de DeliveryZone (Requerida para la entrega) **
         if (other.CompareTag("DeliveryZone") && isHolding)
         {
+            // Implementación robusta para evitar NREs si el Manager no existe (ej. en escenas de prueba)
             if (ZonaDeEntregaManager.Instance != null)
             {
                 ZonaDeEntregaManager.Instance.CheckDelivery(this);
@@ -266,12 +266,11 @@ public class PlayerController : MonoBehaviour
     // --- FUNCIÓN DE ARROJAR BOTELLA (Sabotaje - Versus) ---
     void ThrowObject()
     {
-        // *********************************************************
-        // ** CAMBIO SOLICITADO: Solo permitir lanzamiento en modo Versus **
-        // *********************************************************
+        // ** RESTRICCIÓN SOLICITADA: Solo permitir lanzamiento en modo Versus **
+        // Usamos el Manager para verificar el modo de juego.
         if (ZonaDeEntregaManager.Instance == null || !ZonaDeEntregaManager.Instance.IsVersusMode())
         {
-            Debug.Log("El lanzamiento de botella está deshabilitado en este modo de juego.");
+            Debug.Log("El lanzamiento de botella está deshabilitado en este modo de juego o el Manager no está inicializado.");
             return; 
         }
         
@@ -322,9 +321,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- FUNCIÓN PÚBLICA PARA SER GOLPEADO (AHORA OBSOLETA, EL IMPACTO DE BOTELLA ES SOLO VISUAL ANTES DEL CHARCO) ---
-    // Se elimina GetHit() y StunRoutine() ya que el efecto es solo SLOW por el charco.
-    
     // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO Y PENALIZACIÓN DE ENTREGA ---
     
     /// <summary>
@@ -353,9 +349,9 @@ public class PlayerController : MonoBehaviour
         // Si ya está ralentizado, esto detiene el ciclo anterior y reinicia
         isSlowed = true; 
         
-        // Aplicar la reducción de velocidad
+        // Aplicar la reducción de velocidad y calcular la nueva proporción de corrida/caminata
         walkSpeed = baseWalkSpeed * factor;
-        float runWalkRatio = runSpeed / baseWalkSpeed; // Recalculamos la proporción
+        float runWalkRatio = baseRunSpeed / baseWalkSpeed; 
         runSpeed = walkSpeed * runWalkRatio; 
         
         float blinkDuration = 0.15f; 
@@ -383,7 +379,7 @@ public class PlayerController : MonoBehaviour
 
         // Restauración
         walkSpeed = baseWalkSpeed; 
-        runSpeed = baseWalkSpeed * runWalkRatio; // Restaurar usando la proporción
+        runSpeed = baseRunSpeed; // Restaurar a la velocidad de corrida original
         isSlowed = false; 
         if (spriteRenderer != null)
         {

@@ -63,7 +63,7 @@ public class GameTimer : MonoBehaviour
             timerRootHUD.SetActive(true);
         }
 
-        isGameCounting = true;        
+        isGameCounting = true; 
         Debug.Log("GameTimer: ¡Tiempo de juego iniciado!");
     }
 
@@ -98,8 +98,7 @@ public class GameTimer : MonoBehaviour
     }
 
     /// <summary>
-    /// Devuelve el progreso del tiempo, de 1.0 (lleno) a 0.0 (vacío).
-    /// Esta función es CRÍTICA y es llamada por VisualTimerController.
+    /// Devuelve el progreso del tiempo, de 1.0 (lleno/inicio) a 0.0 (vacío/fin).
     /// </summary>
     public float GetTimeProgress()
     {
