@@ -117,12 +117,12 @@ public class ObjectiveListUI : MonoBehaviour
     {
         float timer = memorizationTime;
         
-        // Bucle para contar y actualizar el texto (usa tiempo real)
+        // Bucle para contar y actualizar el texto
         while (timer > 0)
         {
             if (memorizationTimerText != null)
             {
-                memorizationTimerText.text = "MEMORIZA EN: " + Mathf.CeilToInt(timer).ToString() + "s";
+                memorizationTimerText.text = Mathf.CeilToInt(timer).ToString() + "s";
             }
             
             yield return new WaitForSecondsRealtime(1f); 
