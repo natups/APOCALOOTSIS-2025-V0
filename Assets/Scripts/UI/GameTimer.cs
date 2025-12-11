@@ -10,10 +10,12 @@ public class GameTimer : MonoBehaviour
     [Header("Configuración del Tiempo")]
     public float tiempoTotal = 60f;
     private float tiempoInicio; 
+    
+    // Nota: Asumo que ZonaDeEntregaManager es una clase existente
     private ZonaDeEntregaManager manager; 
     
     [Header("Referencias de UI y Visuales")]
-    [Tooltip("El script que actualiza el sprite de la 'Ventana' visual.")]
+    [Tooltip("El script que controla el visual de la Ventana. Necesario solo para la función DetenerTiempo().")]
     public VisualTimerController visualTimerController; 
     
     [Header("Visualización del Timer")]
@@ -26,6 +28,9 @@ public class GameTimer : MonoBehaviour
 
     private bool juegoTerminado = false;
     private bool isGameCounting = false; 
+    
+    // Propiedad calculada para el tiempo transcurrido
+    private float tiempoTranscurrido => Time.time - tiempoInicio; 
 
     void Start()
     {
@@ -33,13 +38,6 @@ public class GameTimer : MonoBehaviour
         if (timerRootHUD != null)
         {
             timerRootHUD.SetActive(false);
-        }
-        
-        // Se asegura que el VisualTimerController esté en el estado inicial
-        if (visualTimerController != null)
-        {
-             // Asumo que visualTimerController tiene el método StopVisuals
-             // visualTimerController.StopVisuals(); 
         }
     }
 
@@ -64,8 +62,8 @@ public class GameTimer : MonoBehaviour
         {
             timerRootHUD.SetActive(true);
         }
-        
-        isGameCounting = true;
+
+        isGameCounting = true;        
         Debug.Log("GameTimer: ¡Tiempo de juego iniciado!");
     }
 
@@ -76,7 +74,6 @@ public class GameTimer : MonoBehaviour
             return;
         }
 
-        float tiempoTranscurrido = Time.time - tiempoInicio;
         float tiempoRestante = GetTimeRemaining(); 
 
         // 1. LÓGICA DE FIN DE TIEMPO
@@ -98,14 +95,19 @@ public class GameTimer : MonoBehaviour
             int segundos = Mathf.FloorToInt(tiempoRestante % 60);
             textoTimer.text = string.Format("{0:00}:{1:00}", minutos, segundos);
         }
+    }
 
-        // 3. ACTUALIZACIÓN DE UI (Visual/Sprite)
-        // timeProgress va de 1.0 (lleno) a 0.0 (vacío)
-        float timeProgress = 1f - (tiempoTranscurrido / tiempoTotal);
-        if (visualTimerController != null)
-        {
-            visualTimerController.UpdateVisualTimer(timeProgress);
-        }
+    /// <summary>
+    /// Devuelve el progreso del tiempo, de 1.0 (lleno) a 0.0 (vacío).
+    /// Esta función es CRÍTICA y es llamada por VisualTimerController.
+    /// </summary>
+    public float GetTimeProgress()
+    {
+        if (!isGameCounting || juegoTerminado) return 1f; // Si no cuenta, se considera lleno
+        
+        // Retorna el progreso que va disminuyendo con el tiempo.
+        float progress = 1f - (tiempoTranscurrido / tiempoTotal);
+        return Mathf.Clamp01(progress);
     }
 
     /// <summary>
@@ -115,7 +117,7 @@ public class GameTimer : MonoBehaviour
     {
         if (!isGameCounting) return tiempoTotal; 
         
-        float tiempoRestante = tiempoTotal - (Time.time - tiempoInicio);
+        float tiempoRestante = tiempoTotal - tiempoTranscurrido;
         return Mathf.Max(0f, tiempoRestante);
     }
     
@@ -127,7 +129,7 @@ public class GameTimer : MonoBehaviour
         if (!juegoTerminado && isGameCounting)
         { 
             // Sumar al tiempo de inicio es equivalente a restar tiempo restante
-            tiempoInicio += cantidad; 
+            tiempoInicio += cantidad;  
             Debug.Log("¡Penalización! Restados " + cantidad + " segundos.");
         }
     }
@@ -146,11 +148,10 @@ public class GameTimer : MonoBehaviour
              timerRootHUD.SetActive(false);
         }
         
-        // Congela el temporizador visual en el estado final
+        // El GameTimer solo le dice al visual que se congele en el último sprite
         if (visualTimerController != null)
         {
-            // Asumo que visualTimerController tiene el método StopVisuals
-            // visualTimerController.StopVisuals();
+            visualTimerController.StopVisuals();
         }
     }
 }
