@@ -57,7 +57,7 @@ public class EndGameScreenUI : MonoBehaviour
             backToMenuBtn.onClick.AddListener(() =>
             {
                 Time.timeScale = 1f;
-                SceneManager.LoadScene("MenuScene");
+                SceneManager.LoadScene("MainMenu");
             });
         }
 
@@ -67,7 +67,7 @@ public class EndGameScreenUI : MonoBehaviour
             controlsBtn.onClick.AddListener(() =>
             {
                 Time.timeScale = 1f;
-                SceneManager.LoadScene("ControlsScene");
+                SceneManager.LoadScene("Controls");
             });
         }
 
@@ -77,7 +77,7 @@ public class EndGameScreenUI : MonoBehaviour
             changeModeBtn.onClick.AddListener(() =>
             {
                 Time.timeScale = 1f;
-                SceneManager.LoadScene("ModoScene");
+                SceneManager.LoadScene("ModeSelectMenu");
             });
         }
     }
