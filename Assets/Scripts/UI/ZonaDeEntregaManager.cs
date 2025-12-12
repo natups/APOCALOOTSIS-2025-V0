@@ -27,6 +27,7 @@ public class ZonaDeEntregaManager : MonoBehaviour
     public PlayerController player2Controller; // Asignar al Jugador 2
     public DarknessController darknessController;
     public ObjectiveListUI objectiveListUI;
+    public EndGameScreenUI endGameScreenUI;
 
     // ==========================================================
     // SECCIÓN 3: REFERENCIAS DE UI
@@ -127,33 +128,31 @@ public class ZonaDeEntregaManager : MonoBehaviour
     /// CRÍTICO: Inicia la fase de juego (Llamado por ObjectiveListUI al terminar la memorización).
     /// </summary>
     public void StartGamePhase()
-    {
-        gameOver = false;
+    {
+        gameOver = false;
 
-        // 1. Reanudar el tiempo de juego
-        Time.timeScale = 1f;
-       
-        // 2. Activa el HUD de juego (el objeto 'inGameHUDContainer')
-        if (inGameHUDContainer != null) inGameHUDContainer.SetActive(true);
-       
-        // 3. Inicia los procesos de juego
-        if (gameTimer != null) gameTimer.StartGame();
-        if (objectSpawner != null) objectSpawner.StartSpawning();
-       
-        // 4. MODIFICACIÓN CRÍTICA: INICIAR EL CONTROL DE OSCURIDAD
-        if (darknessController != null)
-        {
-            darknessController.StartDarknessIncrease();
-            Debug.Log("[MANAGER DEBUG] Llamado a StartDarknessIncrease.");
-        }
-        else
-        {
-            Debug.LogError("[MANAGER DEBUG] ERROR: La referencia a DarknessController es NULL.");
-        }
-       
-        Debug.Log("Fase de Juego Iniciada y componentes activados.");
-    }
-   
+        // 1. Reanudar el tiempo de juego
+        Time.timeScale = 1f;
+
+        // Ocultar la pantalla de la lista
+        if (objectiveListUI != null) 
+            objectiveListUI.gameObject.SetActive(false);
+
+        // 2. Activa el HUD de juego
+        if (inGameHUDContainer != null) 
+            inGameHUDContainer.SetActive(true);
+
+        // 3. Inicia los procesos de juego
+        if (gameTimer != null) gameTimer.StartGame();
+        if (objectSpawner != null) objectSpawner.StartSpawning();
+
+        // 4. Oscuridad
+        if (darknessController != null)
+            darknessController.StartDarknessIncrease();
+
+        Debug.Log("Fase de Juego Iniciada y componentes activados.");
+    }
+
    
     /// <summary>
     /// Procesa la entrega de un objeto por parte de un jugador a la zona de entrega.
@@ -248,12 +247,16 @@ public class ZonaDeEntregaManager : MonoBehaviour
             ? "¡TIEMPO AGOTADO! No lograron entregar todos los objetos a tiempo."
             : "¡MISIÓN CUMPLIDA! ¡VICTORIA COOPERATIVA!";
        
-        // Ocultar el HUD de juego y mostrar la pantalla final
-        if (inGameHUDContainer != null) inGameHUDContainer.SetActive(false);
-        if (endScreenUI != null) endScreenUI.SetActive(true);
-        if (endScreenMessageText != null) endScreenMessageText.text = finalMessage;
-       
-        Debug.Log("PARTIDA TERMINADA: " + finalMessage);
+        // Ocultar HUD
+        if (inGameHUDContainer != null)
+            inGameHUDContainer.SetActive(false);
+
+        // Mostrar panel final NUEVO
+        if (endGameScreenUI != null)
+        {
+            bool won = !isTimeOut && (objectsDeliveredCount >= totalObjectsToWin);
+            endGameScreenUI.ShowEndScreen(won, objectsDeliveredCount, totalObjectsToWin);
+        }
     }
 
     // ==========================================================

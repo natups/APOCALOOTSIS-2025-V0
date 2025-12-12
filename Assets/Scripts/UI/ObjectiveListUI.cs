@@ -147,10 +147,14 @@ public class ObjectiveListUI : MonoBehaviour
 
     public void HideList()
     {
+        // Desactiva SOLO el fondo y los slots
         if (listRootContainer != null)
         {
             listRootContainer.SetActive(false);
         }
+
+        // desactivar el GameObject entero que contiene este script
+        this.gameObject.SetActive(false);
     }
 
     private void ClearSlots()
