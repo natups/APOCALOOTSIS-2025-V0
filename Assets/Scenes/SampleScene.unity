@@ -4201,7 +4201,7 @@ MonoBehaviour:
   objectiveListUI: {fileID: 568299246}
   endGameScreenUI: {fileID: 728610488}
   endGameVsScreenUI: {fileID: 0}
-  inGameHUDContainer: {fileID: 125378083}
+  inGameHUDContainer: {fileID: 293083947}
   listaObjetivoText: {fileID: 1475087718}
   p1ScoreText: {fileID: 0}
   p2ScoreText: {fileID: 0}
