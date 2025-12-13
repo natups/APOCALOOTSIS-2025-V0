@@ -6,395 +6,356 @@ using TMPro;
 [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
-    // --- VARIABLES DE MOVIMIENTO EXISTENTES ---
-    [Header("Ajustes de Movimiento")]
-    public float walkSpeed = 3f;
-    public float runSpeed = 6f;
-    
-    // --- VARIABLES DE RALENTIZACIÓN/SABOTAJE ---
-    private float baseWalkSpeed; 
-    private float baseRunSpeed; // Guardar la velocidad base de corrida para restauración
-    
-    [Header("Lógica de Ralentización")]
-    public bool isSlowed = false; 
-    private Color originalColor; 
-    
-    // Duración estándar del efecto de ralentización por penalización (charco o entrega incorrecta)
-    [Tooltip("Duración en segundos del efecto SLOW.")]
-    public float slowDuration = 5f; 
-    
-    // Factor de velocidad para la penalización (ej: 0.5f para 50% de velocidad)
-    [Tooltip("Factor de multiplicación para la velocidad base durante la penalización.")]
-    public float defaultSlowFactor = 0.5f; 
-    
-    [Header("Límite de Sabotaje")]
-    public int maxBottles = 3; 
-    private int bottlesRemaining; 
-    // CRÍTICO: Esta es la referencia del texto individual para P1 o P2
-    public TextMeshProUGUI bottleCounterText; 
-    
-    // --- RESTO DE VARIABLES EXISTENTES ---
-    [Header("Controles (Inspector)")]
-    public KeyCode upKey;
-    public KeyCode downKey;
-    public KeyCode leftKey;
-    public KeyCode rightKey;
-    public KeyCode sprintKey;
-    public KeyCode interactKey; 
-    public KeyCode throwKey; 
-    
-    [Header("Lógica de Agarre")]
-    public Transform holdParent; 
-    public float throwForce = 10f; 
-    
-    [Header("Lógica de Sabotaje (Versus)")]
-    public GameObject botellaPrefab; 
-    // Se elimina stunDuration, ya no se usa.
-    
-    [HideInInspector] public GameObject heldObject;
-    private Rigidbody2D heldObjectRB;
-    private GameObject pickableObject; 
+    // --- VARIABLES DE MOVIMIENTO EXISTENTES ---
+    [Header("Ajustes de Movimiento")]
+    public float walkSpeed = 3f;
+    public float runSpeed = 6f;
+    
+    // --- VARIABLES DE RALENTIZACIÓN/SABOTAJE ---
+    private float baseWalkSpeed; 
+    private float baseRunSpeed; // Guardar la velocidad base de corrida para restauración
+    
+    [Header("Lógica de Ralentización")]
+    public bool isSlowed = false; 
+    private Color originalColor; 
+    
+    [Tooltip("Duración en segundos del efecto SLOW.")]
+    public float slowDuration = 5f; 
+    
+    [Tooltip("Factor de multiplicación para la velocidad base durante la penalización.")]
+    public float defaultSlowFactor = 0.5f; 
+    
+    [Header("Límite de Sabotaje")]
+    public int maxBottles = 3; 
+    private int bottlesRemaining; 
+    public TextMeshProUGUI bottleCounterText; 
+    
+    // --- CONTROLES ---
+    [Header("Controles (Inspector)")]
+    public KeyCode upKey;
+    public KeyCode downKey;
+    public KeyCode leftKey;
+    public KeyCode rightKey;
+    public KeyCode sprintKey;
+    public KeyCode interactKey; 
+    public KeyCode throwKey; 
+    
+    [Header("Lógica de Agarre")]
+    public Transform holdParent; 
+    public float throwForce = 10f; 
+    
+    [Header("Lógica de Sabotaje (Versus)")]
+    public GameObject botellaPrefab; 
+    
+    [HideInInspector] public GameObject heldObject;
+    private Rigidbody2D heldObjectRB;
+    private GameObject pickableObject; 
 
-    // Componentes
-    private Rigidbody2D rb;
-    private Animator playerAnimator;
-    private SpriteRenderer spriteRenderer; 
-    private Vector2 movement;
-    
-    // Estados
-    public bool isHolding = false;
-    private bool isSprinting = false;
-    private bool canMove = true; 
-    private Vector2 lastMoveDirection = new Vector2(0, -1); 
+    // Componentes
+    private Rigidbody2D rb;
+    private Animator playerAnimator;
+    private SpriteRenderer spriteRenderer; 
+    private Vector2 movement;
+    
+    // Estados
+    public bool isHolding = false;
+    private bool isSprinting = false;
+    private bool canMove = true; 
+    private Vector2 lastMoveDirection = new Vector2(0, -1); 
 
-    void Awake()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        playerAnimator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>(); 
-        
-        // --- INICIALIZACIÓN ---
-        baseWalkSpeed = walkSpeed; 
-        baseRunSpeed = runSpeed; // Guardamos la velocidad de correr original
-        bottlesRemaining = maxBottles; 
-        
-        if (spriteRenderer != null)
-        {
-            originalColor = spriteRenderer.color; 
-        }
-        UpdateBottleUI(); // Muestra "x3" al inicio
-        // --- FIN INICIALIZACIÓN ---
-
-        if (holdParent == null)
-        {
-            Debug.LogError("Asigna el 'Hold Parent' (holdPoint) en el Inspector del jugador.");
-        }
-    }
-
-    void Update()
-    {
-        if (!canMove)
-        {
-            movement = Vector2.zero;
-        }
-        else
-        {
-            // --- 1. DETECCIÓN DE INPUT DE MOVIMIENTO ---
-            movement = Vector2.zero;
-            if (Input.GetKey(upKey)) movement.y += 1f;
-            if (Input.GetKey(downKey)) movement.y -= 1f;
-            if (Input.GetKey(leftKey)) movement.x -= 1f;
-            if (Input.GetKey(rightKey)) movement.x += 1f;
-            
-            movement = movement.normalized; 
-            
-            // Bloquea sprint si está ralentizado
-            isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
-        }
-
-        // --- 2. Input de Interacción (Agarrar/Soltar) ---
-        if (canMove && Input.GetKeyDown(interactKey))
-        {
-            if (isHolding)
-            {
-                DropObject();
-            }
-            else 
-            {
-                playerAnimator.SetTrigger("Grab");
-                if (pickableObject != null)
-                {
-                    PickUpObject(pickableObject);
-                }
-            }
-        }
-
-        // --- 3. Input de Arrojar (Sabotaje) ---
-        if (canMove && Input.GetKeyDown(throwKey))
-        {
-            ThrowObject();
-        }
-
-        // --- 4. ACTUALIZAR ANIMATOR ---
-        bool isMoving = movement.magnitude > 0.01f;
-        
-        playerAnimator.SetBool("IsMoving", isMoving);
-        playerAnimator.SetBool("IsHolding", isHolding);
-        playerAnimator.SetFloat("Speed", isSprinting ? 1f : 0f); 
-        
-        if (isMoving)
-        {
-            playerAnimator.SetFloat("MoveX", movement.x);
-            playerAnimator.SetFloat("MoveY", movement.y);
-            lastMoveDirection = movement; 
-        }
-    }
-
-    void FixedUpdate()
-    {
-        if (!canMove)
-        {
-            rb.linearVelocity = Vector2.zero; 
-            return;
-        }
-        
-        // La velocidad actual depende de si está corriendo O si está ralentizado (isSlowed)
-        float currentSpeed = (isSprinting && !isHolding) ? runSpeed : walkSpeed;
-        Vector2 newVelocity = movement * currentSpeed;
-        rb.linearVelocity = newVelocity;
-    }
-    
-    // --- LÓGICA DE DETECCIÓN (Triggers) ---
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Interactable"))
-        {
-            pickableObject = other.gameObject;
-        }
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        playerAnimator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>(); 
         
-        // ** Lógica de DeliveryZone (Requerida para la entrega) **
-        if (other.CompareTag("DeliveryZone") && isHolding)
-        {
-            // Implementación robusta para evitar NREs si el Manager no existe (ej. en escenas de prueba)
-            if (ZonaDeEntregaManager.Instance != null)
-            {
-                ZonaDeEntregaManager.Instance.CheckDelivery(this);
-            }
-        }
-    }
+        // --- INICIALIZACIÓN ---
+        baseWalkSpeed = walkSpeed; 
+        baseRunSpeed = runSpeed; 
+        bottlesRemaining = maxBottles; 
+        
+        if (spriteRenderer != null)
+        {
+            originalColor = spriteRenderer.color; 
+        }
+        UpdateBottleUI(); 
 
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.gameObject == pickableObject)
-        {
-            pickableObject = null;
-        }
-    }
+        if (holdParent == null)
+        {
+            Debug.LogError("Asigna el 'Hold Parent' (holdPoint) en el Inspector del jugador.");
+        }
+    }
 
-    // --- LÓGICA DE AGARRAR / SOLTAR / ARROJAR ---
-    public void PickUpObject(GameObject obj)
-    {
-        heldObject = obj;
-        heldObjectRB = heldObject.GetComponent<Rigidbody2D>();
+    void Update()
+    {
+        if (!canMove)
+        {
+            movement = Vector2.zero;
+        }
+        else
+        {
+            // --- DETECCIÓN DE INPUT DE MOVIMIENTO ---
+            movement = Vector2.zero;
+            if (Input.GetKey(upKey)) movement.y += 1f;
+            if (Input.GetKey(downKey)) movement.y -= 1f;
+            if (Input.GetKey(leftKey)) movement.x -= 1f;
+            if (Input.GetKey(rightKey)) movement.x += 1f;
+            
+            movement = movement.normalized; 
+            
+            isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
+        }
 
-        if (heldObjectRB != null)
-        {
-            heldObjectRB.bodyType = RigidbodyType2D.Kinematic;
-            heldObjectRB.linearVelocity = Vector2.zero; 
-        }
+        // --- INTERACCIÓN (AGARRAR / SOLTAR) ---
+        if (canMove && Input.GetKeyDown(interactKey))
+        {
+            if (isHolding)
+            {
+                DropObject();
+            }
+            else 
+            {
+                playerAnimator.SetTrigger("Grab");
+                if (pickableObject != null)
+                {
+                    PickUpObject(pickableObject);
+                }
+            }
+        }
 
-        Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
-        if (heldCollider != null)
-        {
-            heldCollider.enabled = false;
-        }
-        
-        heldObject.transform.SetParent(holdParent);
-        heldObject.transform.localPosition = Vector3.zero; 
-        heldObject.transform.localRotation = Quaternion.identity;
-        
-        isHolding = true;
-    }
-    
-    // ** MÉTODOS REQUERIDOS POR ZONADEENTREGAMANAGER **
-    public GameObject GetHeldObject()
-    {
-        return heldObject;
-    }
+        // --- ARROJAR BOTELLA ---
+        if (canMove && Input.GetKeyDown(throwKey))
+        {
+            ThrowObject();
+        }
 
-    public void ClearHeldObject()
-    {
-        // Importante: El Manager ahora destruye el objeto. Aquí solo limpiamos referencias.
-        heldObject = null;
-        heldObjectRB = null;
-        isHolding = false;
-    }
+        // --- ANIMATOR ---
+        bool isMoving = movement.magnitude > 0.01f;
+        
+        playerAnimator.SetBool("IsMoving", isMoving);
+        playerAnimator.SetBool("IsHolding", isHolding);
+        playerAnimator.SetFloat("Speed", isSprinting ? 1f : 0f); 
+        
+        if (isMoving)
+        {
+            playerAnimator.SetFloat("MoveX", movement.x);
+            playerAnimator.SetFloat("MoveY", movement.y);
+            lastMoveDirection = movement; 
+        }
+    }
 
+    void FixedUpdate()
+    {
+        if (!canMove)
+        {
+            rb.linearVelocity = Vector2.zero; // CAMBIO: reemplazado velocity obsoleto
+            return;
+        }
+        
+        float currentSpeed = (isSprinting && !isHolding) ? runSpeed : walkSpeed;
+        Vector2 newVelocity = movement * currentSpeed;
 
-    public void DropObject()
-    {
-        if (heldObject == null) return;
+        // CAMBIO: usamos linearVelocity en lugar de velocity
+        rb.linearVelocity = newVelocity;
+    }
+    
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Interactable"))
+        {
+            pickableObject = other.gameObject;
+        }
+        
+        if (other.CompareTag("DeliveryZone") && isHolding)
+        {
+            if (ZonaDeEntregaManager.Instance != null)
+            {
+                ZonaDeEntregaManager.Instance.CheckDelivery(this);
+            }
+        }
+    }
 
-        Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
-        if (heldCollider != null)
-        {
-            heldCollider.enabled = true;
-        }
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.gameObject == pickableObject)
+        {
+            pickableObject = null;
+        }
+    }
 
-        // Aseguramos que no tenga el componente de proyectil si se soltó.
-        ThrownObject projectile = heldObject.GetComponent<ThrownObject>();
-        if (projectile != null)
-        {
-            Destroy(projectile);
-        }
+    // --- AGARRAR OBJETO ---
+    public void PickUpObject(GameObject obj)
+    {
+        heldObject = obj;
+        heldObjectRB = heldObject.GetComponent<Rigidbody2D>();
 
-        heldObject.transform.SetParent(null);
-        heldObject.transform.position = transform.position + (Vector3)lastMoveDirection * 0.5f; 
-        
-        if (heldObjectRB != null)
-        {
-            // Devolver a Kinematic si el objeto debe permanecer quieto al soltarlo (como en un spawn point)
-            heldObjectRB.bodyType = RigidbodyType2D.Kinematic; 
-            heldObjectRB.linearVelocity = Vector2.zero;
-        }
+        if (heldObjectRB != null)
+        {
+            heldObjectRB.bodyType = RigidbodyType2D.Kinematic;
+            heldObjectRB.linearVelocity = Vector2.zero; 
+        }
 
-        heldObject = null;
-        heldObjectRB = null;
-        isHolding = false;
-    }
+        Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
+        if (heldCollider != null)
+        {
+            heldCollider.enabled = false;
+        }
+        
+        heldObject.transform.SetParent(holdParent);
+        heldObject.transform.localPosition = Vector3.zero; 
+        heldObject.transform.localRotation = Quaternion.identity;
+        
+        isHolding = true;
+    }
+    
+    public GameObject GetHeldObject()
+    {
+        return heldObject;
+    }
 
-    // --- FUNCIÓN DE ARROJAR BOTELLA (Sabotaje - Versus) ---
-    void ThrowObject()
-    {
-        // ** RESTRICCIÓN SOLICITADA: Solo permitir lanzamiento en modo Versus **
-        // Usamos el Manager para verificar el modo de juego.
-        if (ZonaDeEntregaManager.Instance == null || !ZonaDeEntregaManager.Instance.IsVersusMode())
-        {
-            Debug.Log("El lanzamiento de botella está deshabilitado en este modo de juego o el Manager no está inicializado.");
-            return; 
-        }
-        
-        // 1. Verificar el límite
-        if (bottlesRemaining <= 0)
-        {
-            Debug.Log("Límite de botellas alcanzado.");
-            return; 
-        }
-        
-        if (botellaPrefab == null)
-        {
-            Debug.LogWarning("Prefab de Botella no asignado. No se puede lanzar.");
-            return;
-        }
+    public void ClearHeldObject()
+    {
+        heldObject = null;
+        heldObjectRB = null;
+        isHolding = false;
+    }
 
-        if (isHolding)
-        {
-              DropObject(); 
-        }
-        
-        // 2. Disminuir el contador y actualizar la UI
-        bottlesRemaining--;
-        UpdateBottleUI(); 
+    // --- SOLTAR OBJETO ---
+    public void DropObject()
+    {
+        if (heldObject == null) return;
 
-        // 3. Instanciar y lanzar la botella
-        GameObject bottleInstance = Instantiate(botellaPrefab, transform.position + (Vector3)lastMoveDirection * 0.5f, Quaternion.identity);
+        Collider2D heldCollider = heldObject.GetComponent<Collider2D>();
+        if (heldCollider != null)
+        {
+            heldCollider.enabled = true;
+        }
 
-        // 4. Añadir/Obtener los componentes necesarios
-        Rigidbody2D bottleRB = bottleInstance.GetComponent<Rigidbody2D>();
-        ThrownObject projectile = bottleInstance.GetComponent<ThrownObject>();
-        
-        if(projectile == null)
-        {
-            // Asumo que ThrownObject es un script que maneja la colisión y daño
-            projectile = bottleInstance.AddComponent<ThrownObject>();
-        }
-        
-        // 5. Configurar el proyectil
-        projectile.owner = this.gameObject; 
+        ThrownObject projectile = heldObject.GetComponent<ThrownObject>();
+        if (projectile != null)
+        {
+            Destroy(projectile);
+        }
 
-        // 6. Aplicar fuerza de lanzamiento
-        if (bottleRB != null)
-        {
-            bottleRB.bodyType = RigidbodyType2D.Dynamic;
-            bottleRB.linearVelocity = Vector2.zero; 
-            bottleRB.AddForce(lastMoveDirection.normalized * throwForce, ForceMode2D.Impulse);
-        }
-    }
+        heldObject.transform.SetParent(null);
+        heldObject.transform.position = transform.position + (Vector3)lastMoveDirection * 0.5f; 
+        
+        if (heldObjectRB != null)
+        {
+            heldObjectRB.bodyType = RigidbodyType2D.Kinematic; 
+            heldObjectRB.linearVelocity = Vector2.zero;
+        }
 
-    // --- LÓGICA DE RALENTIZACIÓN DEL CHARCO Y PENALIZACIÓN DE ENTREGA ---
-    
-    /// <summary>
-    /// Inicia el efecto de ralentización y parpadeo.
-    /// Si ya está ralentizado, reinicia la duración.
-    /// </summary>
-    /// <param name="factor">Factor de ralentización (ej: 0.5f).</param>
-    public void ApplySlow(float factor)
-    {
-        // Detiene la corutina existente para evitar conflictos y reinicia la duración
-        StopCoroutine("SlowRoutine");
-        StartCoroutine("SlowRoutine", factor);
-    }
-    
-    /// <summary>
-    /// Llamado por ZonaDeEntregaManager cuando se entrega un objeto incorrecto.
-    /// Utiliza el factor y la duración predeterminados.
-    /// </summary>
-    public void ApplySlowPenalty()
-    {
-        ApplySlow(defaultSlowFactor); 
-    }
+        heldObject = null;
+        heldObjectRB = null;
+        isHolding = false;
+    }
 
-    private IEnumerator SlowRoutine(float factor)
-    {
-        // Si ya está ralentizado, esto detiene el ciclo anterior y reinicia
-        isSlowed = true; 
-        
-        // Aplicar la reducción de velocidad y calcular la nueva proporción de corrida/caminata
-        walkSpeed = baseWalkSpeed * factor;
-        float runWalkRatio = baseRunSpeed / baseWalkSpeed; 
-        runSpeed = walkSpeed * runWalkRatio; 
-        
-        float blinkDuration = 0.15f; 
-        float timeElapsed = 0f;
+    // --- LANZAR BOTELLA ---
+    void ThrowObject()
+    {
+        if (ZonaDeEntregaManager.Instance == null || !ZonaDeEntregaManager.Instance.IsVersusMode())
+        {
+            Debug.Log("Lanzamiento de botella deshabilitado.");
+            return; 
+        }
+        
+        if (bottlesRemaining <= 0)
+        {
+            Debug.Log("Límite de botellas alcanzado.");
+            return; 
+        }
+        
+        if (botellaPrefab == null)
+        {
+            Debug.LogWarning("Prefab de Botella no asignado.");
+            return;
+        }
 
-        while (timeElapsed < slowDuration) 
-        {
-            // Lógica de parpadeo rojo
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = Color.red; 
-                yield return new WaitForSeconds(blinkDuration); 
+        // --- CAMBIO CRÍTICO ---
+        // NO SOLTAR el objeto que el jugador ya tiene en la mano
+        // if (isHolding) { DropObject(); } --> eliminado
 
-                spriteRenderer.color = originalColor; 
-                yield return new WaitForSeconds(blinkDuration);
-            }
-            else
-            {
-                // Si no hay renderer, esperamos y seguimos contando
-                yield return null;
-            }
+        bottlesRemaining--;
+        UpdateBottleUI(); 
 
-            timeElapsed += (blinkDuration * 2); 
-        }
+        GameObject bottleInstance = Instantiate(botellaPrefab, transform.position + (Vector3)lastMoveDirection * 0.5f, Quaternion.identity);
 
-        // Restauración
-        walkSpeed = baseWalkSpeed; 
-        runSpeed = baseRunSpeed; // Restaurar a la velocidad de corrida original
-        isSlowed = false; 
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = originalColor; 
-        }
+        Rigidbody2D bottleRB = bottleInstance.GetComponent<Rigidbody2D>();
+        ThrownObject projectile = bottleInstance.GetComponent<ThrownObject>();
+        
+        if(projectile == null)
+        {
+            projectile = bottleInstance.AddComponent<ThrownObject>();
+        }
+        
+        projectile.owner = this.gameObject; 
 
-        Debug.Log($"Velocidad de {gameObject.name} restaurada.");
-    }
+        if (bottleRB != null)
+        {
+            bottleRB.bodyType = RigidbodyType2D.Dynamic;
+            bottleRB.linearVelocity = Vector2.zero; 
+            bottleRB.AddForce(lastMoveDirection.normalized * throwForce, ForceMode2D.Impulse);
+        }
+    }
 
-    // --- FUNCIÓN PARA ACTUALIZAR LA UI DEL CONTADOR ---
-    public void UpdateBottleUI()
-    {
-        if (bottleCounterText != null)
-        {
-            bottleCounterText.text = $"x{bottlesRemaining}"; 
-        }
-    }
+    // --- RALENTIZACIÓN ---
+    public void ApplySlow(float factor)
+    {
+        StopCoroutine("SlowRoutine");
+        StartCoroutine("SlowRoutine", factor);
+    }
+    
+    public void ApplySlowPenalty()
+    {
+        ApplySlow(defaultSlowFactor); 
+    }
+
+    private IEnumerator SlowRoutine(float factor)
+    {
+        isSlowed = true; 
+        
+        walkSpeed = baseWalkSpeed * factor;
+        float runWalkRatio = baseRunSpeed / baseWalkSpeed; 
+        runSpeed = walkSpeed * runWalkRatio; 
+        
+        float blinkDuration = 0.15f; 
+        float timeElapsed = 0f;
+
+        while (timeElapsed < slowDuration) 
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.red; 
+                yield return new WaitForSeconds(blinkDuration); 
+
+                spriteRenderer.color = originalColor; 
+                yield return new WaitForSeconds(blinkDuration);
+            }
+            else
+            {
+                yield return null;
+            }
+
+            timeElapsed += (blinkDuration * 2); 
+        }
+
+        walkSpeed = baseWalkSpeed; 
+        runSpeed = baseRunSpeed; 
+        isSlowed = false; 
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor; 
+        }
+
+        Debug.Log($"Velocidad de {gameObject.name} restaurada.");
+    }
+
+    public void UpdateBottleUI()
+    {
+        if (bottleCounterText != null)
+        {
+            bottleCounterText.text = $"x{bottlesRemaining}"; 
+        }
+    }
 }
