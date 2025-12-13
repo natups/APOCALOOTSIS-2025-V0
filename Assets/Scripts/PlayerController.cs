@@ -91,75 +91,81 @@ public class PlayerController : MonoBehaviour
     }
 
     void Update()
+{
+    // --- PAUSA SI SE MANTIENE TAB ---
+    if (controlsPanel != null && Input.GetKey(KeyCode.Tab))
     {
-        if (!canMove)
-        {
-            movement = Vector2.zero;
-        }
-        else
-        {
-            // --- DETECCIÓN DE INPUT DE MOVIMIENTO ---
-            movement = Vector2.zero;
-            if (Input.GetKey(upKey)) movement.y += 1f;
-            if (Input.GetKey(downKey)) movement.y -= 1f;
-            if (Input.GetKey(leftKey)) movement.x -= 1f;
-            if (Input.GetKey(rightKey)) movement.x += 1f;
-            
-            movement = movement.normalized; 
-            
-            isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
-        }
-
-        // --- INTERACCIÓN (AGARRAR / SOLTAR) ---
-        if (canMove && Input.GetKeyDown(interactKey))
-        {
-            if (isHolding)
-            {
-                DropObject();
-            }
-            else 
-            {
-                playerAnimator.SetTrigger("Grab");
-                if (pickableObject != null)
-                {
-                    PickUpObject(pickableObject);
-                }
-            }
-        }
-
-        // --- ARROJAR BOTELLA ---
-        if (canMove && Input.GetKeyDown(throwKey))
-        {
-            ThrowObject();
-        }
-
-        // --- ANIMATOR ---
-        bool isMoving = movement.magnitude > 0.01f;
-        
-        playerAnimator.SetBool("IsMoving", isMoving);
-        playerAnimator.SetBool("IsHolding", isHolding);
-        playerAnimator.SetFloat("Speed", isSprinting ? 1f : 0f); 
-        
-        if (isMoving)
-        {
-            playerAnimator.SetFloat("MoveX", movement.x);
-            playerAnimator.SetFloat("MoveY", movement.y);
-            lastMoveDirection = movement; 
-        }
-
-        // Mostrar controles mientras se mantiene Tab
+        controlsPanel.SetActive(true);   // Mostrar el panel
+        Time.timeScale = 0f;             // Pausar el tiempo
+    }
+    else
+    {
         if (controlsPanel != null)
+            controlsPanel.SetActive(false);  // Ocultar el panel
+        Time.timeScale = 1f;                 // Reanudar el tiempo
+    }
+
+    if(tabHintText != null)
+    {
+        tabHintText.SetActive(!Input.GetKey(KeyCode.Tab));
+    }
+
+    // --- BLOQUE DE MOVIMIENTO ---
+    if (!canMove || Input.GetKey(KeyCode.Tab))
+    {
+        movement = Vector2.zero;
+    }
+    else
+    {
+        movement = Vector2.zero;
+        if (Input.GetKey(upKey)) movement.y += 1f;
+        if (Input.GetKey(downKey)) movement.y -= 1f;
+        if (Input.GetKey(leftKey)) movement.x -= 1f;
+        if (Input.GetKey(rightKey)) movement.x += 1f;
+        
+        movement = movement.normalized; 
+        
+        isSprinting = Input.GetKey(sprintKey) && !isSlowed; 
+    }
+
+    // --- INTERACCIÓN (AGARRAR / SOLTAR) ---
+    if (canMove && !Input.GetKey(KeyCode.Tab) && Input.GetKeyDown(interactKey))
+    {
+        if (isHolding)
         {
-            if (Input.GetKey(KeyCode.Tab))
+            DropObject();
+        }
+        else 
+        {
+            playerAnimator.SetTrigger("Grab");
+            if (pickableObject != null)
             {
-                controlsPanel.SetActive(true);   // Mostramos el panel
-            }
-            else
-            {
-                controlsPanel.SetActive(false);  // Lo ocultamos al soltar Tab
+                PickUpObject(pickableObject);
             }
         }
     }
+
+    // --- ARROJAR BOTELLA ---
+    if (canMove && !Input.GetKey(KeyCode.Tab) && Input.GetKeyDown(throwKey))
+    {
+        ThrowObject();
+    }
+
+    // --- ANIMATOR ---
+    bool isMoving = movement.magnitude > 0.01f;
+    
+    playerAnimator.SetBool("IsMoving", isMoving);
+    playerAnimator.SetBool("IsHolding", isHolding);
+    playerAnimator.SetFloat("Speed", isSprinting ? 1f : 0f); 
+    
+    if (isMoving)
+    {
+        playerAnimator.SetFloat("MoveX", movement.x);
+        playerAnimator.SetFloat("MoveY", movement.y);
+        lastMoveDirection = movement; 
+    }
+}
+
 
     void FixedUpdate()
     {
