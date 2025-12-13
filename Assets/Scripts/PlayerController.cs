@@ -51,6 +51,10 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D heldObjectRB;
     private GameObject pickableObject; 
 
+    [Header("HUD de Controles")]
+    public GameObject controlsPanel;  // Panel con los controles
+    public GameObject tabHintText;    // Texto que dice "Tab para ver controles"
+
     // Componentes
     private Rigidbody2D rb;
     private Animator playerAnimator;
@@ -141,6 +145,19 @@ public class PlayerController : MonoBehaviour
             playerAnimator.SetFloat("MoveX", movement.x);
             playerAnimator.SetFloat("MoveY", movement.y);
             lastMoveDirection = movement; 
+        }
+
+        // Mostrar controles mientras se mantiene Tab
+        if (controlsPanel != null)
+        {
+            if (Input.GetKey(KeyCode.Tab))
+            {
+                controlsPanel.SetActive(true);   // Mostramos el panel
+            }
+            else
+            {
+                controlsPanel.SetActive(false);  // Lo ocultamos al soltar Tab
+            }
         }
     }
 
