@@ -611,14 +611,14 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: Apocaloopsis
+  metroPackageName: Apocalootsis
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: Apocaloopsis
+  metroApplicationDescription: Apocalootsis
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -692,7 +692,7 @@ PlayerSettings:
   cloudProjectId: e7407194-43fe-45fe-9aea-ab2d4c04c0fd
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Apocaloopsis
+  projectName: Apocalootsis
   organizationId: austinham106
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
