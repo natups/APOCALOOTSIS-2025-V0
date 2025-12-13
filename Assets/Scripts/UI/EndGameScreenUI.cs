@@ -109,16 +109,6 @@ public class EndGameScreenUI : MonoBehaviour
             });
         }
 
-        // Botón cambiar modo
-        if (changeModeBtn != null)
-        {
-            changeModeBtn.onClick.RemoveAllListeners();
-            changeModeBtn.onClick.AddListener(() =>
-            {
-                Time.timeScale = 1f;
-                SceneManager.LoadScene("ModeSelectMenu");
-            });
-        }
 
         // Botón reiniciar juego
         if (retryBtn != null)

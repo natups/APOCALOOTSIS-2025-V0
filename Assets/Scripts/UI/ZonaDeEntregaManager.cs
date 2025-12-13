@@ -2,25 +2,15 @@ using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
 
-/// Definición de modos de juego.
+// ===============================
+// ENUM DE MODOS DE JUEGO
+// ===============================
 public enum GameMode { COOP, VERSUS }
 
-/// Manager principal que controla:
-/// - Entrega de objetos
-/// - Puntajes
-/// - Penalizaciones
-/// - HUD
-/// - Fin de juego y panel de resultados
 public class ZonaDeEntregaManager : MonoBehaviour
 {
-    // ===============================
-    // SINGLETON
-    // ===============================
     public static ZonaDeEntregaManager Instance { get; private set; }
 
-    // ===============================
-    // REFERENCIAS DE SCRIPTS
-    // ===============================
     [Header("Referencias de Scripts")]
     public ObjectSpawner objectSpawner;
     public GameTimer gameTimer;
@@ -28,27 +18,21 @@ public class ZonaDeEntregaManager : MonoBehaviour
     public PlayerController player2Controller;
     public DarknessController darknessController;
     public ObjectiveListUI objectiveListUI;
-    public EndGameScreenUI endGameScreenUI;
 
-    // ===============================
-    // REFERENCIAS DE UI
-    // ===============================
+    [Header("End Game UI")]
+    public EndGameScreenUI endGameScreenUI;
+    public EndGameScreenVsUI endGameVsScreenUI;
+
     [Header("UI")]
     public GameObject inGameHUDContainer;
     public TextMeshProUGUI listaObjetivoText;
     public TextMeshProUGUI p1ScoreText;
     public TextMeshProUGUI p2ScoreText;
 
-    // ===============================
-    // CONFIGURACIÓN DE JUEGO
-    // ===============================
     [Header("Configuración de juego")]
     public GameMode currentMode = GameMode.COOP;
     public int totalObjectsToWin = 5;
 
-    // ===============================
-    // ESTADO DE JUEGO
-    // ===============================
     private int objectsDeliveredCount = 0;
     private int player1Score = 0;
     private int player2Score = 0;
@@ -66,8 +50,9 @@ public class ZonaDeEntregaManager : MonoBehaviour
     private void Start()
     {
         // Ocultar HUD y panel final al inicio
-        if (inGameHUDContainer != null) inGameHUDContainer.SetActive(false);
-        if (endGameScreenUI != null) endGameScreenUI.HideEndScreen();
+        inGameHUDContainer?.SetActive(false);
+        endGameScreenUI?.HideEndScreen();
+        endGameVsScreenUI?.HideEndScreen();
 
         // Inicializar spawner y objetivos
         if (objectSpawner != null)
@@ -76,8 +61,7 @@ public class ZonaDeEntregaManager : MonoBehaviour
             objectSpawner.InitializeSpawner();
 
             // Inicializar timer
-            if (gameTimer != null)
-                gameTimer.SetManager(this);
+            gameTimer?.SetManager(this);
 
             // Mostrar fase de memorización con ObjectiveListUI
             if (objectiveListUI != null)
@@ -113,19 +97,17 @@ public class ZonaDeEntregaManager : MonoBehaviour
         Time.timeScale = 1f;
 
         // Ocultar lista de objetivos
-        if (objectiveListUI != null)
-            objectiveListUI.gameObject.SetActive(false);
+        objectiveListUI?.gameObject.SetActive(false);
 
         // Mostrar HUD
-        if (inGameHUDContainer != null)
-            inGameHUDContainer.SetActive(true);
+        inGameHUDContainer?.SetActive(true);
 
         // Iniciar spawner y timer
-        if (objectSpawner != null) objectSpawner.StartSpawning();
-        if (gameTimer != null) gameTimer.StartGame();
+        objectSpawner?.StartSpawning();
+        gameTimer?.StartGame();
 
         // Iniciar incremento de oscuridad
-        if (darknessController != null) darknessController.StartDarknessIncrease();
+        darknessController?.StartDarknessIncrease();
 
         Debug.Log("Fase de juego iniciada.");
     }
@@ -166,10 +148,13 @@ public class ZonaDeEntregaManager : MonoBehaviour
             UpdateObjectiveUI();
             UpdateScoreUI();
 
-            if (objectSpawner != null) objectSpawner.RefillObjectsOnScreen();
+            objectSpawner?.RefillObjectsOnScreen();
 
+            // Condición de victoria: alguien llega al máximo de objetos
             if (objectsDeliveredCount >= totalObjectsToWin)
+            {
                 FinalizeGame(false);
+            }
         }
         else
         {
@@ -180,7 +165,7 @@ public class ZonaDeEntregaManager : MonoBehaviour
             player.ClearHeldObject();
             Destroy(heldObject);
 
-            if (objectSpawner != null) objectSpawner.RefillObjectsOnScreen();
+            objectSpawner?.RefillObjectsOnScreen();
         }
     }
 
@@ -210,19 +195,31 @@ public class ZonaDeEntregaManager : MonoBehaviour
         gameOver = true;
 
         // Detener procesos
-        if (gameTimer != null) gameTimer.DetenerTiempo();
-        if (objectSpawner != null) objectSpawner.StopSpawning();
-        if (darknessController != null) darknessController.StopDarknessIncrease();
+        gameTimer?.DetenerTiempo();
+        objectSpawner?.StopSpawning();
+        darknessController?.StopDarknessIncrease();
 
         // Ocultar HUD
-        if (inGameHUDContainer != null)
-            inGameHUDContainer.SetActive(false);
+        inGameHUDContainer?.SetActive(false);
 
-        // Mostrar panel de fin de juego
-        if (endGameScreenUI != null)
+        // -------------------------------
+        // LOGICA DE FIN DE JUEGO SEGÚN MODO
+        // -------------------------------
+        if (currentMode == GameMode.COOP)
         {
             bool won = !isTimeOut && (objectsDeliveredCount >= totalObjectsToWin);
-            endGameScreenUI.ShowEndScreen(won, objectsDeliveredCount, totalObjectsToWin);
+            endGameScreenUI?.ShowEndScreen(won, objectsDeliveredCount, totalObjectsToWin);
+        }
+        else if (currentMode == GameMode.VERSUS)
+        {
+            // Determinar quién ganó
+            string winnerText = "";
+            if (player1Score > player2Score) winnerText = "Jugador 1 gana!";
+            else if (player2Score > player1Score) winnerText = "Jugador 2 gana!";
+            else winnerText = "¡Empate!";
+
+            // Mostrar panel de fin de juego VERSUS
+            endGameVsScreenUI?.ShowEndScreenVs(winnerText, player1Score, player2Score);
         }
     }
 
@@ -236,8 +233,9 @@ public class ZonaDeEntregaManager : MonoBehaviour
         player2Score = 0;
         gameOver = false;
 
-        if (endGameScreenUI != null) endGameScreenUI.HideEndScreen();
-        if (inGameHUDContainer != null) inGameHUDContainer.SetActive(true);
+        endGameScreenUI?.HideEndScreen();
+        endGameVsScreenUI?.HideEndScreen();
+        inGameHUDContainer?.SetActive(true);
 
         if (objectSpawner != null)
         {
@@ -249,7 +247,7 @@ public class ZonaDeEntregaManager : MonoBehaviour
             }
         }
 
-        if (gameTimer != null) gameTimer.StartGame();
-        if (darknessController != null) darknessController.StartDarknessIncrease();
+        gameTimer?.StartGame();
+        darknessController?.StartDarknessIncrease();
     }
 }
