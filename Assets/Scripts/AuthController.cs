@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using System.Runtime.InteropServices;
 using UnityEngine.SceneManagement;
@@ -10,35 +9,33 @@ public class AuthController : MonoBehaviour
     // 1. VARIABLES PÚBLICAS (Inspector)
     // ----------------------------------------------------------------------
 
-    // Paneles principales de la UI
+    // Paneles principales
     public GameObject loginPanel;
     public GameObject registerPanel;
 
     // ---------- LOGIN ----------
     public GameObject loginEmailInputObject;
     public GameObject loginPasswordInputObject;
-    public TextMeshProUGUI loginStatusText; // Texto de estado (errores / éxito)
+    public TextMeshProUGUI loginStatusText;
 
     // ---------- REGISTER ----------
     public GameObject registerEmailInputObject;
     public GameObject registerPasswordInputObject;
-    public TextMeshProUGUI registerStatusText; // Texto de estado (errores / éxito)
+    public TextMeshProUGUI registerStatusText;
 
-    // Referencias internas a los TMP_InputField
+    // Referencias internas
     private TMP_InputField loginEmailField;
     private TMP_InputField loginPasswordField;
     private TMP_InputField registerEmailField;
     private TMP_InputField registerPasswordField;
 
-    // ID del usuario actual
-    // → null = no hay sesión iniciada
+    // Usuario actual (null = no logueado)
     private string currentUserId = null;
 
     // ----------------------------------------------------------------------
     // 2. PUENTE JAVASCRIPT (WebGL)
     // ----------------------------------------------------------------------
 
-    // Registro de usuario (Firebase vía JS)
     [DllImport("__Internal")]
     private static extern void RegisterUser(
         string email,
@@ -48,7 +45,6 @@ public class AuthController : MonoBehaviour
         string failureCallback
     );
 
-    // Login de usuario
     [DllImport("__Internal")]
     private static extern void SignInUser(
         string email,
@@ -58,7 +54,14 @@ public class AuthController : MonoBehaviour
         string failureCallback
     );
 
-    // Logout
+    // 👉 NUEVO: Login anónimo
+    [DllImport("__Internal")]
+    private static extern void SignInAnonymouslyUser(
+        string gameObject,
+        string successCallback,
+        string failureCallback
+    );
+
     [DllImport("__Internal")]
     private static extern void SignOutUser(
         string gameObject,
@@ -67,56 +70,39 @@ public class AuthController : MonoBehaviour
     );
 
     // ----------------------------------------------------------------------
-    // 3. START – INICIALIZACIÓN GENERAL
+    // 3. START – INICIALIZACIÓN
     // ----------------------------------------------------------------------
 
     void Start()
     {
-        // =========================
-        // OBTENER INPUTFIELDS LOGIN
-        // =========================
+        // Obtener InputFields
         if (loginEmailInputObject != null)
             loginEmailField = loginEmailInputObject.GetComponent<TMP_InputField>();
 
         if (loginPasswordInputObject != null)
             loginPasswordField = loginPasswordInputObject.GetComponent<TMP_InputField>();
 
-        // =========================
-        // OBTENER INPUTFIELDS REGISTER
-        // =========================
         if (registerEmailInputObject != null)
             registerEmailField = registerEmailInputObject.GetComponent<TMP_InputField>();
 
         if (registerPasswordInputObject != null)
             registerPasswordField = registerPasswordInputObject.GetComponent<TMP_InputField>();
 
-        // =========================
-        // DESDE QUÉ PANEL ARRANCAMOS
-        // =========================
-        // Se guarda desde MainMenu para saber si entrar a Login o Register
+        // Panel inicial
         string initialPanel = PlayerPrefs.GetString("InitialPanel", "Login");
 
         if (initialPanel == "Register")
-        {
             ShowRegisterPanel();
-        }
         else
-        {
-            // Default: Login
             ShowLoginPanel();
-        }
 
-        // =========================
-        // LOGOUT FORZADO DESDE MAINMENU
-        // =========================
-        // Si el MainMenu pidió logout, lo ejecutamos al cargar esta escena
+        // Logout forzado desde MainMenu
         if (PlayerPrefs.GetInt("RequestLogout", 0) == 1)
         {
             PlayerPrefs.DeleteKey("RequestLogout");
             RequestLogout();
         }
 
-        // Limpieza
         PlayerPrefs.DeleteKey("InitialPanel");
     }
 
@@ -124,18 +110,14 @@ public class AuthController : MonoBehaviour
     // 4. UTILIDAD: TEXTO DE ESTADO ACTIVO
     // ----------------------------------------------------------------------
 
-    // Devuelve el texto correcto según el panel visible
     private TextMeshProUGUI GetActiveStatusText()
     {
-        // Si estamos en Login
-        if (loginPanel != null && loginPanel.activeSelf && loginStatusText != null)
+        if (loginPanel != null && loginPanel.activeSelf)
             return loginStatusText;
 
-        // Si estamos en Register
-        if (registerPanel != null && registerPanel.activeSelf && registerStatusText != null)
+        if (registerPanel != null && registerPanel.activeSelf)
             return registerStatusText;
 
-        // Ningún texto válido
         return null;
     }
 
@@ -145,26 +127,20 @@ public class AuthController : MonoBehaviour
 
     public void ShowLoginPanel()
     {
-        // Activa Login
-        if (loginPanel != null) loginPanel.SetActive(true);
+        loginPanel.SetActive(true);
+        registerPanel.SetActive(false);
 
-        // Oculta Register
-        if (registerPanel != null) registerPanel.SetActive(false);
-
-        // Limpia mensajes anteriores
-        if (loginStatusText != null) loginStatusText.text = "";
+        if (loginStatusText != null)
+            loginStatusText.text = "";
     }
 
     public void ShowRegisterPanel()
     {
-        // Activa Register
-        if (registerPanel != null) registerPanel.SetActive(true);
+        registerPanel.SetActive(true);
+        loginPanel.SetActive(false);
 
-        // Oculta Login
-        if (loginPanel != null) loginPanel.SetActive(false);
-
-        // Limpia mensajes anteriores
-        if (registerStatusText != null) registerStatusText.text = "";
+        if (registerStatusText != null)
+            registerStatusText.text = "";
     }
 
     // ----------------------------------------------------------------------
@@ -173,108 +149,86 @@ public class AuthController : MonoBehaviour
 
     public void GoBackToMainMenu()
     {
-        // Carga el MainMenu
         SceneManager.LoadScene("MainMenu");
-
-        // Esperamos a que cargue para avisarle el estado de login
         SceneManager.sceneLoaded += OnMainMenuLoaded;
     }
 
     private void OnMainMenuLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Nos desuscribimos para evitar llamadas futuras
         SceneManager.sceneLoaded -= OnMainMenuLoaded;
 
-        // Solo actuamos si realmente es el MainMenu
         if (scene.name == "MainMenu")
         {
-            MainMenu mainMenuUI = FindAnyObjectByType<MainMenu>();
-
-            if (mainMenuUI != null)
-            {
-                // Si hay userId → está logueado
-                mainMenuUI.UpdateAuthUI(!string.IsNullOrEmpty(currentUserId));
-            }
+            MainMenu menu = FindAnyObjectByType<MainMenu>();
+            if (menu != null)
+                menu.UpdateAuthUI(!string.IsNullOrEmpty(currentUserId));
         }
     }
 
     // ----------------------------------------------------------------------
-    // 7. BOTONES DE LOGIN / REGISTER
+    // 7. BOTONES LOGIN / REGISTER / INVITADO
     // ----------------------------------------------------------------------
 
     public void OnLoginClicked()
     {
-        // Feedback inmediato
         if (loginStatusText != null)
             loginStatusText.text = "Iniciando sesión...";
 
-        // Validamos que existan los campos
-        if (loginEmailField != null && loginPasswordField != null)
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            // =========================
-            // WEBGL (Firebase real)
-            // =========================
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
-            {
-                SignInUser(
-                    loginEmailField.text,
-                    loginPasswordField.text,
-                    gameObject.name,
-                    nameof(OnAuthSuccess),
-                    nameof(OnAuthFailure)
-                );
-            }
-            // =========================
-            // EDITOR (simulado)
-            // =========================
-            else
-            {
-                Invoke(nameof(SimulateLoginSuccess), 1f);
-            }
+            SignInUser(
+                loginEmailField.text,
+                loginPasswordField.text,
+                gameObject.name,
+                nameof(OnAuthSuccess),
+                nameof(OnAuthFailure)
+            );
         }
         else
         {
-            // Error de referencias
-            if (loginStatusText != null)
-                loginStatusText.text = "Error: Campos de Login no asignados.";
+            Invoke(nameof(SimulateLoginSuccess), 1f);
         }
     }
 
     public void OnRegisterClicked()
     {
-        // Feedback inmediato
         if (registerStatusText != null)
             registerStatusText.text = "Registrando usuario...";
 
-        // Validamos que existan los campos
-        if (registerEmailField != null && registerPasswordField != null)
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            // =========================
-            // WEBGL (Firebase real)
-            // =========================
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
-            {
-                RegisterUser(
-                    registerEmailField.text,
-                    registerPasswordField.text,
-                    gameObject.name,
-                    nameof(OnAuthSuccess),
-                    nameof(OnAuthFailure)
-                );
-            }
-            // =========================
-            // EDITOR (simulado)
-            // =========================
-            else
-            {
-                Invoke(nameof(SimulateRegisterSuccess), 1f);
-            }
+            RegisterUser(
+                registerEmailField.text,
+                registerPasswordField.text,
+                gameObject.name,
+                nameof(OnAuthSuccess),
+                nameof(OnAuthFailure)
+            );
         }
         else
         {
-            // Error de referencias
-            if (registerStatusText != null)
-                registerStatusText.text = "Error: Campos de Registro no asignados.";
+            Invoke(nameof(SimulateRegisterSuccess), 1f);
+        }
+    }
+
+    // 👉 BOTÓN "ENTRAR COMO INVITADO"
+    public void OnAnonymousLoginClicked()
+    {
+        TextMeshProUGUI status = GetActiveStatusText();
+        if (status != null)
+            status.text = "Entrando como invitado...";
+
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            SignInAnonymouslyUser(
+                gameObject.name,
+                nameof(OnAuthSuccess),
+                nameof(OnAuthFailure)
+            );
+        }
+        else
+        {
+            Invoke(nameof(SimulateAnonymousSuccess), 1f);
         }
     }
 
@@ -284,10 +238,8 @@ public class AuthController : MonoBehaviour
 
     public void RequestLogout()
     {
-        // Limpiamos sesión local
         currentUserId = null;
 
-        // WebGL → Firebase real
         if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
             SignOutUser(
@@ -296,7 +248,6 @@ public class AuthController : MonoBehaviour
                 nameof(OnAuthFailure)
             );
         }
-        // Editor → simulado
         else
         {
             Invoke(nameof(SimulateLogoutSuccess), 0.5f);
@@ -304,40 +255,31 @@ public class AuthController : MonoBehaviour
     }
 
     // ----------------------------------------------------------------------
-    // 9. RESPUESTAS (CALLBACKS)
+    // 9. RESPUESTAS
     // ----------------------------------------------------------------------
 
-    // ===== SIMULACIONES =====
-    private void SimulateLoginSuccess()
-    {
-        OnAuthSuccess("simulated-user-id-login");
-    }
+    // ===== SIMULACIONES (EDITOR) =====
+    private void SimulateLoginSuccess() =>
+        OnAuthSuccess("simulated-login-user");
 
-    private void SimulateRegisterSuccess()
-    {
-        OnAuthSuccess("simulated-user-id-register");
-    }
+    private void SimulateRegisterSuccess() =>
+        OnAuthSuccess("simulated-register-user");
 
-    private void SimulateLogoutSuccess()
-    {
-        OnLogoutSuccess("logout");
-    }
+    private void SimulateAnonymousSuccess() =>
+        OnAuthSuccess("simulated-anonymous-user");
 
-    // ===== ÉXITO LOGIN / REGISTER =====
+    private void SimulateLogoutSuccess() =>
+        OnLogoutSuccess("ok");
+
+    // ===== ÉXITO LOGIN / REGISTER / INVITADO =====
     public void OnAuthSuccess(string userId)
     {
-        // Guardamos el ID
         currentUserId = userId;
 
-        // Mostramos mensaje en el panel activo
-        TextMeshProUGUI activeStatus = GetActiveStatusText();
+        TextMeshProUGUI status = GetActiveStatusText();
+        if (status != null)
+            status.text = "Sesión iniciada correctamente";
 
-        if (activeStatus != null)
-            activeStatus.text = "Sesión iniciada correctamente";
-
-        Debug.Log("Usuario autenticado: " + userId);
-
-        // Volvemos al menú principal
         GoBackToMainMenu();
     }
 
@@ -345,14 +287,10 @@ public class AuthController : MonoBehaviour
     public void OnLogoutSuccess(string unused)
     {
         currentUserId = null;
-
-        Debug.Log("Sesión cerrada correctamente");
-
-        // Volvemos a Login
         ShowLoginPanel();
 
         if (loginStatusText != null)
-            loginStatusText.text = "Sesión cerrada. Iniciá sesión nuevamente.";
+            loginStatusText.text = "Sesión cerrada.";
     }
 
     // ===== ERROR =====
@@ -360,13 +298,8 @@ public class AuthController : MonoBehaviour
     {
         currentUserId = null;
 
-        // Mostramos error en el panel activo
-        TextMeshProUGUI activeStatus = GetActiveStatusText();
-
-        if (activeStatus != null)
-        {
-            activeStatus.text = "Error: " + errorMessage;
-            Debug.LogError("Error de autenticación: " + errorMessage);
-        }
+        TextMeshProUGUI status = GetActiveStatusText();
+        if (status != null)
+            status.text = "Error: " + errorMessage;
     }
 }

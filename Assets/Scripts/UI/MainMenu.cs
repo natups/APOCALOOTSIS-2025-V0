@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Runtime.InteropServices;
 
 // Controla el menú principal del juego.
 // Maneja la navegación entre paneles, escenas
@@ -26,8 +27,24 @@ public class MainMenu : MonoBehaviour
     // Botón para registrarse
     public GameObject registerButton;
 
+    // Botón para entrar como invitado
+    public GameObject guestButton;
+
     // Botón para cerrar sesión
     public GameObject logoutButton;
+
+    // =========================
+    // PUENTE JAVASCRIPT (Firebase)
+    // =========================
+
+    [DllImport("__Internal")]
+    private static extern void SignInAnonymouslyUser(
+        string gameObject,
+        string successCallback,
+        string failureCallback
+    );
+
+    private string currentUserId = null;
 
     private void OnEnable()
     {
@@ -59,9 +76,44 @@ public class MainMenu : MonoBehaviour
         if (registerButton != null)
             registerButton.SetActive(!isAuthenticated);
 
+        if (guestButton != null)
+            guestButton.SetActive(!isAuthenticated);
+
         // Logout solo aparece si está autenticado
         if (logoutButton != null)
             logoutButton.SetActive(isAuthenticated);
+    }
+
+    // =========================
+    // ENTRAR COMO INVITADO
+    // =========================
+
+    public void PlayAsGuest()
+    {
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            SignInAnonymouslyUser(
+                gameObject.name,
+                nameof(OnGuestAuthSuccess),
+                nameof(OnGuestAuthFailure)
+            );
+        }
+        else
+        {
+            // Simulación en Editor
+            OnGuestAuthSuccess("simulated-anonymous-user");
+        }
+    }
+
+    public void OnGuestAuthSuccess(string userId)
+    {
+        currentUserId = userId;
+        UpdateAuthUI(true);
+    }
+
+    public void OnGuestAuthFailure(string error)
+    {
+        Debug.LogError("Error login anónimo: " + error);
     }
 
     // =========================
@@ -79,11 +131,12 @@ public class MainMenu : MonoBehaviour
     // Solicita el cierre de sesión y redirige a la escena de autenticación
     public void LogoutClicked()
     {
-        // Marca que se debe cerrar sesión
+        currentUserId = null;
+        UpdateAuthUI(false);
+
         PlayerPrefs.SetInt("RequestLogout", 1);
         PlayerPrefs.Save();
 
-        // Carga la escena de autenticación
         SceneManager.LoadScene("Authentication");
     }
 
