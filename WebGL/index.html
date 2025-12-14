@@ -86,7 +86,18 @@
                         });
                 },
                 
-                // NUEVA FUNCIÓN: Cerrar Sesión (SignOutUser en el .jslib de Unity)
+                // Función de inicio de sesión anonimo
+                signInAnonymously: function() {
+                  console.log("JS: Intentando iniciar sesión como invitado...");
+                  return auth.signInAnonymously()
+                      .then((userCredential) => userCredential.user)
+                      .catch((error) => {
+                          console.error("JS Error login anónimo:", error.message);
+                          throw error;
+                        });
+                },
+
+                // Cerrar Sesión (SignOutUser en el .jslib de Unity)
                 signOut: function() {
                     console.log("JS: Intentando cerrar sesión...");
                     return auth.signOut()
