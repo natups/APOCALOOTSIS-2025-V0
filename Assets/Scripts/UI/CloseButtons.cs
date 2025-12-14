@@ -1,10 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
 /// Script genérico para botones de cerrar paneles
 /// Puede cerrar paneles como Controles, Ajustes, etc.
-/// </summary>
 public class CloseButtons : MonoBehaviour
 {
     public void CloseScene()

@@ -2,43 +2,36 @@ using UnityEngine;
 
 public class MusicaSingleton : MonoBehaviour
 {
-    // Ahora la instancia es pública para que otros scripts la encuentren
-    public static MusicaSingleton instance;
+    public static MusicaSingleton instance; // Instancia pública para acceder globalmente
 
-    // Guardamos la referencia al AudioSource
-    private AudioSource miAudioSource;
+    private AudioSource miAudioSource; // Referencia al AudioSource
 
     void Awake()
     {
         // Revisamos si ya existe una instancia
         if (instance == null)
         {
-            // Si no existe, esta se convierte en la instancia
-            instance = this;
-            
-            // Le dice a Unity que no destruya este GameObject
-            DontDestroyOnLoad(gameObject);
-            
-            // Obtenemos el componente AudioSource
-            miAudioSource = GetComponent<AudioSource>();
+            instance = this; // Asignamos esta instancia como la única
+            DontDestroyOnLoad(gameObject); // No destruir este GameObject al cambiar de escena
+            miAudioSource = GetComponent<AudioSource>(); // Obtenemos el AudioSource
         }
         else
         {
-            // Si ya existe una instancia (duplicado), se destruye
+            // Si ya existe, destruimos este GameObject duplicado
             Destroy(gameObject);
         }
     }
 
-    // Nueva función pública para controlar la música desde fuera
+    // Función para pausar o reanudar la música
     public void PausarMusica(bool pausar)
     {
         if (pausar)
         {
-            miAudioSource.Pause();
+            miAudioSource.Pause(); // Pausa la música
         }
         else
         {
-            miAudioSource.UnPause();
+            miAudioSource.UnPause(); // Reanuda la música
         }
     }
 }

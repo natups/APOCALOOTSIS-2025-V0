@@ -1,11 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
 /// Script para la escena de controles.
 /// Detecta desde dónde se abrió (MainMenu o fin de juego)
 /// y vuelve al lugar correcto al cerrar.
-/// </summary>
 public class Controls : MonoBehaviour
 {
     public enum ControlsContext
@@ -17,9 +15,7 @@ public class Controls : MonoBehaviour
     // Guardamos contexto estático para que sea accesible desde EndGameScreenUI
     public static ControlsContext CurrentContext = ControlsContext.MainMenu;
 
-    /// <summary>
     /// Llamar desde el botón de cerrar controles
-    /// </summary>
     public void CloseControls()
     {
         if (CurrentContext == ControlsContext.EndGamePanel)

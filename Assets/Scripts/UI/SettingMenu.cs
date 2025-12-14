@@ -3,15 +3,22 @@ using UnityEngine.Audio;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+// Controla el menú de configuración de audio.
+// Permite modificar el volumen general y volver al menú principal.
 public class SettingsMenu : MonoBehaviour
 {
-    public AudioMixer audioMixer; // Lo configuramos en el inspector
+    // Mezclador de audio donde se controla el volumen general
+    public AudioMixer audioMixer;
+
+    // Slider usado para ajustar el volumen
     public Slider volumeSlider;
-    public Button backToMenuButton; // Asigna el botón desde el inspector
+
+    // Botón para volver al menú principal
+    public Button backToMenuButton;
 
     void Start()
     {
-        // Recuperar valor guardado (si existe)
+        // Recupera el volumen guardado previamente
         if (PlayerPrefs.HasKey("volume"))
         {
             float savedVolume = PlayerPrefs.GetFloat("volume");
@@ -19,7 +26,7 @@ public class SettingsMenu : MonoBehaviour
             audioMixer.SetFloat("volume", savedVolume);
         }
 
-        // Ocultar el botón si estamos en el MainMenu
+        // Oculta el botón si el menú ya es el MainMenu
         if (SceneManager.GetActiveScene().name == "MainMenu")
         {
             backToMenuButton.gameObject.SetActive(false);
@@ -30,12 +37,14 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
+    // Cambia el volumen del AudioMixer y guarda la preferencia
     public void SetVolume(float volume)
     {
         audioMixer.SetFloat("volume", volume);
-        PlayerPrefs.SetFloat("volume", volume); // Guardar preferencia
+        PlayerPrefs.SetFloat("volume", volume);
     }
 
+    // Vuelve al menú principal
     public void BackToMenu()
     {
         PlayerPrefs.SetInt("hasStarted", 1);

@@ -2,114 +2,125 @@ using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
 
-// ===============================
-// ENUM DE MODOS DE JUEGO
-// ===============================
+// Modos de juego disponibles
+// COOP: jugadores colaboran
+// VERSUS: jugadores compiten entre sí
 public enum GameMode { COOP, VERSUS }
 
 public class ZonaDeEntregaManager : MonoBehaviour
 {
+    // Singleton para poder acceder a este manager desde otros scripts
     public static ZonaDeEntregaManager Instance { get; private set; }
 
-    [Header("Referencias de Scripts")]
-    public ObjectSpawner objectSpawner;
-    public GameTimer gameTimer;
-    public PlayerController player1Controller;
-    public PlayerController player2Controller;
-    public DarknessController darknessController;
-    public ObjectiveListUI objectiveListUI;
-
-    [Header("End Game UI")]
-    public EndGameScreenUI endGameScreenUI;
-    public EndGameScreenVsUI endGameVsScreenUI;
-
-    [Header("UI")]
-    public GameObject inGameHUDContainer;
-    public TextMeshProUGUI listaObjetivoText;
-    public TextMeshProUGUI p1ScoreText;
-    public TextMeshProUGUI p2ScoreText;
-
-    [Header("Configuración de juego")]
-    public GameMode currentMode = GameMode.COOP;
-    public int totalObjectsToWin = 5;
-
-    private int objectsDeliveredCount = 0;
-    private int player1Score = 0;
-    private int player2Score = 0;
-    private bool gameOver = true;
+    // ===============================
+    // REFERENCIAS PRINCIPALES
+    // ===============================
+    public ObjectSpawner objectSpawner;        // Maneja el spawn y los objetivos
+    public GameTimer gameTimer;                // Controla el tiempo de la partida
+    public PlayerController player1Controller; // Referencia al jugador 1
+    public PlayerController player2Controller; // Referencia al jugador 2
+    public DarknessController darknessController; // Controla el aumento de oscuridad
+    public ObjectiveListUI objectiveListUI;    // UI de memorización de objetivos
 
     // ===============================
-    // SINGLETON & INICIALIZACIÓN
+    // UI DE FIN DE PARTIDA
+    // ===============================
+    public EndGameScreenUI endGameScreenUI;     // Pantalla final modo COOP
+    public EndGameScreenVsUI endGameVsScreenUI; // Pantalla final modo VERSUS
+
+    // ===============================
+    // UI EN PARTIDA
+    // ===============================
+    public GameObject inGameHUDContainer; // HUD principal
+    public TextMeshProUGUI listaObjetivoText; // Texto X / Total
+    public TextMeshProUGUI p1ScoreText;   // Puntaje jugador 1
+    public TextMeshProUGUI p2ScoreText;   // Puntaje jugador 2
+
+    // ===============================
+    // CONFIGURACIÓN DE JUEGO
+    // ===============================
+    public GameMode currentMode = GameMode.COOP; // Modo actual
+    public int totalObjectsToWin = 5;            // Objetos necesarios para ganar
+
+    // ===============================
+    // ESTADO INTERNO
+    // ===============================
+    private int objectsDeliveredCount = 0; // Cantidad de objetos entregados correctamente
+    private int player1Score = 0;          // Puntaje jugador 1
+    private int player2Score = 0;          // Puntaje jugador 2
+    private bool gameOver = true;           // Bloquea acciones cuando termina el juego
+
+    // ===============================
+    // SINGLETON
     // ===============================
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        // Si no existe una instancia, esta se convierte en la principal
+        if (Instance == null)
+            Instance = this;
+        // Si ya existe, destruimos el duplicado
+        else
+            Destroy(gameObject);
     }
 
     private void Start()
     {
-        // Ocultar HUD y panel final al inicio
+        // Oculta el HUD y las pantallas de fin al iniciar la escena
         inGameHUDContainer?.SetActive(false);
         endGameScreenUI?.HideEndScreen();
         endGameVsScreenUI?.HideEndScreen();
 
-        // Inicializar spawner y objetivos
+        // Verificamos que exista el spawner antes de usarlo
         if (objectSpawner != null)
         {
+            // Configura cuántos objetos se necesitan para ganar
             objectSpawner.totalObjectsRequired = totalObjectsToWin;
             objectSpawner.InitializeSpawner();
 
-            // Inicializar timer
+            // Le informamos al timer quién es su manager
             gameTimer?.SetManager(this);
 
-            // Mostrar fase de memorización con ObjectiveListUI
+            // Si existe la UI de objetivos, arrancamos con la fase de memorización
             if (objectiveListUI != null)
             {
-                if (!objectiveListUI.gameObject.activeSelf)
-                    objectiveListUI.gameObject.SetActive(true);
-
+                objectiveListUI.gameObject.SetActive(true);
                 objectiveListUI.SetInitialObjectives(objectSpawner.requiredObjects);
                 objectiveListUI.gameHUDContainer = inGameHUDContainer;
                 objectiveListUI.ShowList();
             }
+            // Si no hay UI de memorización, se inicia el juego directamente
             else
             {
-                Debug.LogWarning("ObjectiveListUI no asignada. Iniciando juego directamente.");
                 StartGamePhase();
             }
         }
-        else
-        {
-            Debug.LogError("ObjectSpawner no asignado en el manager.");
-        }
 
+        // Actualiza textos iniciales
         UpdateObjectiveUI();
         UpdateScoreUI();
     }
 
     // ===============================
-    // INICIO DE FASE DE JUEGO
+    // INICIO DE PARTIDA
     // ===============================
     public void StartGamePhase()
     {
+        // El juego ya está activo
         gameOver = false;
+
+        // Reanuda el tiempo del juego
         Time.timeScale = 1f;
 
-        // Ocultar lista de objetivos
+        // Oculta la UI de memorización
         objectiveListUI?.gameObject.SetActive(false);
 
-        // Mostrar HUD
+        // Muestra el HUD de juego
         inGameHUDContainer?.SetActive(true);
 
-        // Iniciar spawner y timer
+        // Inicia los sistemas principales
         objectSpawner?.StartSpawning();
         gameTimer?.StartGame();
-
-        // Iniciar incremento de oscuridad
         darknessController?.StartDarknessIncrease();
-
-        Debug.Log("Fase de juego iniciada.");
     }
 
     // ===============================
@@ -117,71 +128,98 @@ public class ZonaDeEntregaManager : MonoBehaviour
     // ===============================
     public void CheckDelivery(PlayerController player)
     {
+        // Si el juego terminó, no se procesa ninguna entrega
         if (gameOver) return;
 
+        // Obtenemos el objeto que el jugador está llevando
         GameObject heldObject = player.GetHeldObject();
+
+        // Si no lleva nada, no hacemos nada
         if (heldObject == null) return;
 
+        // Intentamos obtener los datos del objeto
         ObjectData data = heldObject.GetComponent<ObjectData>();
         Object carriedObject = data?.data;
 
+        // Si el objeto no tiene datos válidos, se elimina
         if (carriedObject == null)
         {
-            Debug.LogError("Objeto sin ObjectData. Eliminando.");
             player.ClearHeldObject();
             Destroy(heldObject);
             return;
         }
 
+        // ===============================
+        // ENTREGA CORRECTA
+        // ===============================
+        // Verificamos si el objeto entregado es uno de los requeridos
         if (objectSpawner.requiredObjects.Contains(carriedObject))
         {
-            // --- ENTREGA CORRECTA ---
+            // Quitamos el objeto de la lista de objetivos
             objectSpawner.RemoveFromObjective(carriedObject);
+
+            // Incrementamos el contador global (COOP)
             objectsDeliveredCount++;
 
-            if (player == player1Controller) player1Score++;
-            else if (player == player2Controller) player2Score++;
+            // Sumamos puntos al jugador correspondiente (VS)
+            if (player == player1Controller)
+                player1Score++;
+            else if (player == player2Controller)
+                player2Score++;
 
+            // Limpiamos y destruimos el objeto entregado
             player.ClearHeldObject();
             Destroy(heldObject);
 
+            // Actualizamos UI
             UpdateObjectiveUI();
             UpdateScoreUI();
 
-            objectSpawner?.RefillObjectsOnScreen();
+            // Reponemos objetos en escena
+            objectSpawner.RefillObjectsOnScreen();
 
-            // Condición de victoria: alguien llega al máximo de objetos
+            // Si se alcanzó el objetivo total, termina la partida
             if (objectsDeliveredCount >= totalObjectsToWin)
             {
                 FinalizeGame(false);
             }
         }
+        // ===============================
+        // ENTREGA INCORRECTA
+        // ===============================
         else
         {
-            // --- ENTREGA INCORRECTA (penalización: lentitud) ---
-            Debug.Log($"Objeto incorrecto: {carriedObject.objectName}. Aplicando penalización.");
+            // Aplicamos penalización al jugador
             player.ApplySlowPenalty();
 
+            // Eliminamos el objeto incorrecto
             player.ClearHeldObject();
             Destroy(heldObject);
 
-            objectSpawner?.RefillObjectsOnScreen();
+            // Reponemos objetos en escena
+            objectSpawner.RefillObjectsOnScreen();
         }
     }
 
     // ===============================
-    // MÉTODOS AUXILIARES
+    // UTILIDADES
     // ===============================
-    public bool IsVersusMode() => currentMode == GameMode.VERSUS;
+    public bool IsVersusMode()
+    {
+        // Devuelve true si el modo actual es VERSUS
+        return currentMode == GameMode.VERSUS;
+    }
 
     private void UpdateObjectiveUI()
     {
+        // Actualiza el texto X / Total (coop)
         if (listaObjetivoText != null)
             listaObjetivoText.text = $"{objectsDeliveredCount}/{totalObjectsToWin}";
     }
 
     private void UpdateScoreUI()
     {
+        // Actualiza puntajes de jugadores (vs)
         if (p1ScoreText != null) p1ScoreText.text = "P1: " + player1Score;
         if (p2ScoreText != null) p2ScoreText.text = "P2: " + player2Score;
     }
@@ -191,62 +229,73 @@ public class ZonaDeEntregaManager : MonoBehaviour
     // ===============================
     public void FinalizeGame(bool isTimeOut)
     {
+        // Evita que se ejecute más de una vez
         if (gameOver) return;
         gameOver = true;
 
-        // Detener procesos
+        // Detiene todos los sistemas activos
         gameTimer?.DetenerTiempo();
         objectSpawner?.StopSpawning();
         darknessController?.StopDarknessIncrease();
 
-        // Ocultar HUD
+        // Oculta el HUD
         inGameHUDContainer?.SetActive(false);
 
-        // -------------------------------
-        // LOGICA DE FIN DE JUEGO SEGÚN MODO
-        // -------------------------------
+        // ===============================
+        // MODO COOP
+        // ===============================
         if (currentMode == GameMode.COOP)
         {
-            bool won = !isTimeOut && (objectsDeliveredCount >= totalObjectsToWin);
+            // Se gana si no fue por tiempo y se alcanzó el objetivo
+            bool won = !isTimeOut && objectsDeliveredCount >= totalObjectsToWin;
             endGameScreenUI?.ShowEndScreen(won, objectsDeliveredCount, totalObjectsToWin);
         }
-        else if (currentMode == GameMode.VERSUS)
+        // ===============================
+        // MODO VERSUS
+        // ===============================
+        else
         {
-            // Determinar quién ganó
-            string winnerText = "";
-            if (player1Score > player2Score) winnerText = "Jugador 1 gana!";
-            else if (player2Score > player1Score) winnerText = "Jugador 2 gana!";
-            else winnerText = "¡Empate!";
+            string winnerText;
 
-            // Mostrar panel de fin de juego VERSUS
+            // Compara puntajes para determinar ganador
+            if (player1Score > player2Score)
+                winnerText = "Jugador 1 gana!";
+            else if (player2Score > player1Score)
+                winnerText = "Jugador 2 gana!";
+            else
+                winnerText = "¡Empate!";
+
             endGameVsScreenUI?.ShowEndScreenVs(winnerText, player1Score, player2Score);
         }
     }
 
     // ===============================
-    // REINICIAR JUEGO
+    // REINICIO DE PARTIDA
     // ===============================
     public void RestartGame()
     {
+        // Reinicia contadores y estado
         objectsDeliveredCount = 0;
         player1Score = 0;
         player2Score = 0;
         gameOver = false;
 
+        // Oculta pantallas finales y muestra HUD
         endGameScreenUI?.HideEndScreen();
         endGameVsScreenUI?.HideEndScreen();
         inGameHUDContainer?.SetActive(true);
 
-        if (objectSpawner != null)
+        // Reinicia spawner
+        objectSpawner?.InitializeSpawner();
+
+        // Vuelve a mostrar la fase de memorización
+        if (objectiveListUI != null)
         {
-            objectSpawner.InitializeSpawner();
-            if (objectiveListUI != null)
-            {
-                objectiveListUI.SetInitialObjectives(objectSpawner.requiredObjects);
-                objectiveListUI.ShowList();
-            }
+            objectiveListUI.SetInitialObjectives(objectSpawner.requiredObjects);
+            objectiveListUI.ShowList();
         }
 
+        // Reinicia sistemas
         gameTimer?.StartGame();
         darknessController?.StartDarknessIncrease();
     }

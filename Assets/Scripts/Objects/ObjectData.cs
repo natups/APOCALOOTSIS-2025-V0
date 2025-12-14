@@ -1,71 +1,76 @@
 using UnityEngine;
 
-/// <summary>
-/// Componente que se coloca en el objeto de juego recogible.
-/// Carga la plantilla de datos (BaseDataObject) y aplica sus propiedades visuales.
-/// </summary>
+/// Componente que se coloca en cada objeto recogible del juego.
+/// Se encarga de cargar los datos desde un ScriptableObject
+/// y aplicar sus propiedades visuales al SpriteRenderer.
 [RequireComponent(typeof(SpriteRenderer))]
 public class ObjectData : MonoBehaviour
 {
-    // Hacemos el campo privado para forzar el uso de SetData() y evitamos la asignación directa.
-    // Usamos 'Object' porque es lo que espera ObjectSpawner, pero lo ocultamos del Inspector.
-    [HideInInspector]
-    public Object data; 
+    // ==============================
+    // DATOS DEL OBJETO
+    // ==============================
 
+    // ScriptableObject con la información del objeto (sprite, color, nombre, etc.)
+    // Se mantiene oculto para forzar el uso de SetData()
+    [HideInInspector]
+    public Object data;
+
+    // Referencia al SpriteRenderer del objeto
     private SpriteRenderer spriteRenderer;
 
-    void Awake()
+    private void Awake()
     {
+        // Obtiene el SpriteRenderer obligatorio
         spriteRenderer = GetComponent<SpriteRenderer>();
-        // Si data ya está asignada (p. ej., en Awake), se aplica.
+
+        // Si los datos ya estaban asignados, se aplican automáticamente
         if (data != null)
         {
             ApplyData();
         }
     }
 
-    /// <summary>
-    /// CRÍTICO: Asigna el ScriptableObject dinámicamente y llama a ApplyData.
-    /// </summary>
+    /// Asigna dinámicamente el ScriptableObject al objeto
+    /// y aplica inmediatamente sus propiedades visuales.
     public void SetData(Object objectData)
     {
-        // 1. Asigna los datos.
+        // Asigna los datos del objeto
         data = objectData;
-        
-        // 2. LLAMADA CRÍTICA: Aplica los datos inmediatamente al SpriteRenderer.
-        ApplyData(); 
 
-        // 3. FIX DE ESCALA: Ajusta la escala si es excesivamente grande.
+        // Aplica sprite, color y nombre
+        ApplyData();
+
+        // Ajuste de seguridad para evitar escalas excesivamente grandes
         if (transform.localScale.x > 5f || transform.localScale.y > 5f)
         {
-             transform.localScale = Vector3.one * 1f; 
+            transform.localScale = Vector3.one;
         }
     }
 
+    /// Aplica al SpriteRenderer la información visual contenida en el ScriptableObject.
     private void ApplyData()
     {
-        // Intenta castear el Object genérico a tu clase específica BaseDataObject.
+        // Convierte el Object genérico al tipo base esperado
         BaseDataObject baseData = data as BaseDataObject;
-        
+
+        // Verifica que existan los datos y el renderer
         if (spriteRenderer != null && baseData != null)
         {
-            if (baseData.objectSprite != null) // Verifica que el sprite exista
+            // Asigna el sprite y el color definidos en el ScriptableObject
+            if (baseData.objectSprite != null)
             {
                 spriteRenderer.sprite = baseData.objectSprite;
                 spriteRenderer.color = baseData.displayColor;
             }
             else
             {
-                Debug.LogError($"El objeto de datos '{baseData.objectName}' NO tiene un sprite asignado.");
-                spriteRenderer.sprite = null; 
-                spriteRenderer.color = Color.magenta; // Magenta para fácil visualización de error.
+                // Si no hay sprite, se limpia la referencia visual
+                spriteRenderer.sprite = null;
+                spriteRenderer.color = Color.magenta;
             }
-            
-            gameObject.name = "Objeto - " + baseData.objectName; 
-        }
-        else if (data != null)
-        {
-            Debug.LogError($"FALLÓ EL CASTEO: El objeto asignado '{data.name}' no es un BaseDataObject válido o SpriteRenderer no encontrado.");
+
+            // Renombra el GameObject para facilitar debugging en la jerarquía
+            gameObject.name = "Objeto - " + baseData.objectName;
         }
     }
 }

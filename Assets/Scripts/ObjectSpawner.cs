@@ -2,107 +2,85 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-// NOTA: Asumimos que la clase 'Object' (ScriptableObject) y 'ObjectData' (MonoBehaviour) existen.
 public class ObjectSpawner : MonoBehaviour
 {
     [Header("Configuración de Objetos")]
-    [Tooltip("El prefab con el componente ObjectData.")]
-    public ObjectData baseObjectPrefab; 
-    [Tooltip("Todos los ScriptableObjects de objetos posibles (Correctos + Incorrectos).")]
-    public List<Object> allPossibleObjectData; 
-    public List<Transform> spawnPoints;
+    public ObjectData baseObjectPrefab;  // Prefab con el componente ObjectData.
+    public List<Object> allPossibleObjectData; // Lista de todos los objetos posibles (correctos e incorrectos).
+    public List<Transform> spawnPoints;  // Puntos de aparición de los objetos en el mapa.
     
-    [Tooltip("Número máximo de objetos que puede haber en la escena a la vez (Ej: 10).")]
-    public int maxObjectsOnScreen = 10; 
-    [Tooltip("Número de objetos correctos requeridos para ganar (Ej: 5).")]
-    public int totalObjectsRequired = 5; 
+    public int maxObjectsOnScreen = 10;  // Número máximo de objetos en pantalla a la vez.
+    public int totalObjectsRequired = 5; // Número de objetos correctos requeridos para ganar.
 
-    [HideInInspector] public List<Object> requiredObjects = new List<Object>(); // Objetivos (SO)
-    [HideInInspector] public List<ObjectData> spawnedObjects = new List<ObjectData>(); // Instancias en escena (MB)
+    [HideInInspector] public List<Object> requiredObjects = new List<Object>();  // Objetivos correctos.
+    [HideInInspector] public List<ObjectData> spawnedObjects = new List<ObjectData>();  // Objetos instanciados en la escena.
     
-    private bool isSpawning = false; 
+    private bool isSpawning = false;  // Indica si la generación de objetos está activa.
 
-    /// <summary>
-    /// PRE-JUEGO: Selecciona los objetivos de la partida (5 correctos) y limpia el escenario.
-    /// </summary>
+    /// Inicializa el generador seleccionando los objetivos y limpiando la escena.
     public void InitializeSpawner()
     {
-        ClearSpawnedObjects();
-        requiredObjects.Clear();
-        isSpawning = false;
-        
+        ClearSpawnedObjects();  // Limpia los objetos actualmente en la escena.
+        requiredObjects.Clear();  // Limpia los objetos requeridos.
+        isSpawning = false;  // Detiene el proceso de generación.
+
         List<Object> availableObjects = new List<Object>(allPossibleObjectData);
-        
+
         if (availableObjects.Count < totalObjectsRequired)
         {
-            Debug.LogError("ERROR: No hay suficientes Data Objects para el objetivo. Necesitas al menos " + totalObjectsRequired + " únicos.");
-            return;
+            return;  // Si no hay suficientes objetos para cumplir los objetivos, no hacer nada.
         }
 
-        // 1. Seleccionar objetos CORRECTOS (Objetivo)
+        // Selecciona los objetos correctos que serán los objetivos.
         for (int i = 0; i < totalObjectsRequired; i++)
         {
-            if (availableObjects.Count == 0) break; 
             int randomIndex = Random.Range(0, availableObjects.Count);
             requiredObjects.Add(availableObjects[randomIndex]);
-            availableObjects.RemoveAt(randomIndex); // Asegura que sean únicos
+            availableObjects.RemoveAt(randomIndex);  // Asegura que los objetos sean únicos.
         }
-        
-        Debug.Log($"Objetivos seleccionados: {requiredObjects.Count}");
     }
-    
-    /// <summary>
-    /// Llamado por el Manager para empezar a generar objetos en el escenario.
-    /// </summary>
+
+    /// Comienza la generación de objetos en la escena.
     public void StartSpawning()
     {
         isSpawning = true;
-        RefillObjectsOnScreen(); // Primera llamada para llenar el mapa
+        RefillObjectsOnScreen();  // Llama a la generación de objetos en pantalla.
     }
-    
-    /// <summary>
-    /// Genera objetos (correctos e incorrectos) para rellenar el mapa hasta maxObjectsOnScreen.
-    /// </summary>
+
+    /// Rellena la escena con objetos hasta el máximo permitido.
     public void RefillObjectsOnScreen()
     {
         if (!isSpawning) return;
-        
-        spawnedObjects.RemoveAll(item => item == null); // Limpia referencias nulas
-        
+
+        spawnedObjects.RemoveAll(item => item == null);  // Limpia las referencias nulas.
+
         List<Object> objectsToSpawn = new List<Object>();
         List<Object> allObjectsTyped = allPossibleObjectData.Cast<Object>().ToList();
-        
-        // 1. Identifica los objetos CORRECTOS que AÚN NO han sido entregados y AÚN NO están en escena.
+
+        // Identifica los objetos correctos que no están en escena.
         var requiredNotInScene = requiredObjects
             .Where(req => !spawnedObjects.Any(s => s.data == req))
             .ToList();
 
-        // 2. Identifica los objetos INCORRECTOS (distractores)
+        // Identifica los objetos incorrectos que no están en escena.
         var incorrectNotInScene = allObjectsTyped
             .Except(requiredObjects)
             .Where(data => !spawnedObjects.Any(s => s.data == data))
             .ToList();
-        
+
         int objectsToCreate = maxObjectsOnScreen - spawnedObjects.Count;
-        
-        // A. PRIORIDAD AL REQUERIDO
-        if (requiredNotInScene.Count > 0 && objectsToCreate > 0)
-        {
-            objectsToSpawn.Add(requiredNotInScene[0]);
-            objectsToCreate--;
-            requiredNotInScene.RemoveAt(0);
-        }
-        
-        // B. RELLENO
+
+        // Asegura que haya una mezcla de objetos correctos e incorrectos en la escena.
         while (objectsToCreate > 0)
         {
             bool canSpawnRequired = requiredNotInScene.Count > 0;
             bool canSpawnIncorrect = incorrectNotInScene.Count > 0;
             
-            if (!canSpawnRequired && !canSpawnIncorrect) break; // No quedan objetos
+            if (!canSpawnRequired && !canSpawnIncorrect) break;
 
             Object objectToUse = null;
 
+            // Prioriza los objetos correctos si están disponibles.
             if (canSpawnRequired && (canSpawnIncorrect == false || Random.Range(0f, 1f) < 0.5f))
             {
                 int index = Random.Range(0, requiredNotInScene.Count);
@@ -115,18 +93,19 @@ public class ObjectSpawner : MonoBehaviour
                 objectToUse = incorrectNotInScene[index];
                 incorrectNotInScene.RemoveAt(index);
             }
-            
+
             if (objectToUse != null)
             {
                 objectsToSpawn.Add(objectToUse);
                 objectsToCreate--;
             }
         }
-        
-        // 3. GENERACIÓN
+
+        // Aleatoriza el orden de los objetos a generar.
         ShuffleList(objectsToSpawn); 
         List<Transform> availableSpawnPoints = new List<Transform>(spawnPoints);
-        
+
+        // Instancia los objetos en los puntos de aparición.
         foreach (var objData in objectsToSpawn)
         {
             if (availableSpawnPoints.Count == 0) break;
@@ -135,68 +114,60 @@ public class ObjectSpawner : MonoBehaviour
             Transform spawnPoint = availableSpawnPoints[randomSpawnIndex];
             
             ObjectData newObject = Instantiate(baseObjectPrefab, spawnPoint.position, Quaternion.identity, transform);
-            
-            // Asignar datos al objeto
-            newObject.SetData(objData);
+            newObject.SetData(objData);  // Asigna los datos al objeto.
 
-            // -------------------------------
-            // AJUSTE DE ESCALA SEGÚN MODO DE JUEGO
-            // -------------------------------
+            // Ajuste de escala dependiendo del modo de juego (versus o cooperativo).
             if (ZonaDeEntregaManager.Instance != null && ZonaDeEntregaManager.Instance.IsVersusMode())
             {
-                newObject.transform.localScale = Vector3.one * 0.2f; // escala 0.2 solo en VERSUS
+                newObject.transform.localScale = Vector3.one * 0.2f;  // Escala reducida en modo versus.
             }
             else
             {
-                newObject.transform.localScale = Vector3.one * 0.1f; // escala normal en COOP
+                newObject.transform.localScale = Vector3.one * 0.1f;  // Escala normal en modo cooperativo.
             }
 
             spawnedObjects.Add(newObject);
             availableSpawnPoints.RemoveAt(randomSpawnIndex);
         }
     }
-    
-    /// <summary>
-    /// Elimina el GameObject y su referencia de la lista.
-    /// </summary>
+
+    /// Elimina un objeto de la lista y lo destruye en la escena.
     public void RemoveObjectFromList(GameObject heldObject)
     {
         ObjectData objData = heldObject.GetComponent<ObjectData>();
         if (objData != null)
         {
-            spawnedObjects.Remove(objData); 
+            spawnedObjects.Remove(objData);  // Elimina la referencia del objeto de la lista.
         }
-        Destroy(heldObject);
-    }
-    
-    /// <summary>
-    /// Remueve el ScriptableObject de la lista de objetivos restantes (entrega correcta).
-    /// </summary>
-    public void RemoveFromObjective(Object obj)
-    {
-        requiredObjects.Remove(obj);
-    }
-    
-    /// <summary>
-    /// Detiene la generación de objetos.
-    /// </summary>
-    public void StopSpawning()
-    {
-        isSpawning = false;
+        Destroy(heldObject);  // Destruye el objeto de la escena.
     }
 
+    /// Remueve un objeto del conjunto de objetivos correctos.
+    public void RemoveFromObjective(Object obj)
+    {
+        requiredObjects.Remove(obj);  // Elimina el objeto de los objetivos restantes.
+    }
+
+    /// Detiene el proceso de generación de objetos.
+    public void StopSpawning()
+    {
+        isSpawning = false;  // Detiene la generación de nuevos objetos.
+    }
+
+    // Limpiar los objetos ya generados de la escena.
     private void ClearSpawnedObjects()
     {
         foreach (var obj in spawnedObjects)
         {
             if (obj != null)
             {
-                Destroy(obj.gameObject);
+                Destroy(obj.gameObject);  // Elimina el objeto de la escena.
             }
         }
-        spawnedObjects.Clear();
+        spawnedObjects.Clear();  // Limpia la lista de objetos generados.
     }
-    
+
+    // Aleatoriza el orden de los elementos de una lista.
     private void ShuffleList<T>(List<T> list)
     {
         int n = list.Count;

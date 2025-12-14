@@ -1,82 +1,67 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System.Collections; 
-using TMPro; 
+using System.Collections;
+using TMPro;
 
-/// <summary>
-/// Controla la visualización de la lista de objetivos durante la fase de memorización.
-/// </summary>
+// Maneja la fase de memorización de objetivos.
+// Muestra la lista, pausa el juego y luego inicia la partida.
 public class ObjectiveListUI : MonoBehaviour
 {
-    [Header("Configuración de la UI")]
-    [Tooltip("El objeto padre de TODA la lista (Fondo, Textos, Iconos).")]
-    public GameObject listRootContainer; 
-    
-    [Tooltip("Prefab del elemento Image que se usará para mostrar cada objetivo.")]
-    public GameObject objectiveSlotPrefab;
-    
-    [Tooltip("Referencia al contenedor del HUD del juego (Contador 0/5, Cronómetro).")]
-    public GameObject gameHUDContainer; // CRÍTICO: Referencia al HUD principal del juego
-    
-    [Header("Configuración de Partida")]
-    [Tooltip("Tiempo en segundos que el jugador tiene para memorizar la lista.")]
-    public float memorizationTime = 7f; 
+    // Contenedor principal de la lista de objetivos
+    public GameObject listRootContainer;
 
-    [Header("Textos Opcionales")]
-    [Tooltip("Referencia al TextMeshPro que muestra el tiempo restante de memorización.")]
+    // Prefab visual de cada objetivo
+    public GameObject objectiveSlotPrefab;
+
+    // HUD principal del juego (contador y cronómetro)
+    public GameObject gameHUDContainer;
+
+    // Tiempo disponible para memorizar los objetivos
+    public float memorizationTime = 7f;
+
+    // Texto que muestra el tiempo restante
     public TextMeshProUGUI memorizationTimerText;
 
+    // Slots visuales creados dinámicamente
     private List<Image> objectiveSlots = new List<Image>();
-    // Usamos el tipo correcto: Object (que hereda de BaseDataObject)
-    private List<Object> currentObjectives; 
+
+    // Lista de objetivos actuales (ScriptableObjects)
+    private List<Object> currentObjectives;
 
     private void Awake()
     {
-        // Aseguramos que la lista esté OCULTA al inicio
+        // La lista debe comenzar oculta
         if (listRootContainer != null)
         {
             listRootContainer.SetActive(false);
         }
     }
 
-    /// <summary>
-    /// Crea los slots y asigna los objetivos seleccionados por el Spawner.
-    /// </summary>
-    // Ahora espera List<Object>
+    // Recibe los objetivos del spawner y crea los slots visuales
     public void SetInitialObjectives(List<Object> objectives)
     {
         ClearSlots();
         currentObjectives = objectives;
-        
-        if (objectiveSlotPrefab == null)
-        {
-            Debug.LogError("ObjectiveListUI: ¡El prefab del slot no está asignado!");
-            return;
-        }
 
-        // Generar los slots dinámicamente
         for (int i = 0; i < objectives.Count; i++)
         {
-            // Usamos la clase Object, que hereda de BaseDataObject para acceder a sus propiedades visuales
-            Object objData = objectives[i]; 
-            
-            // Instancia el slot como hijo del objeto que contiene este script
+            Object objData = objectives[i];
+
             GameObject newSlot = Instantiate(objectiveSlotPrefab, transform);
             Image slotImage = newSlot.GetComponent<Image>();
-            
+
             if (slotImage != null)
             {
                 objectiveSlots.Add(slotImage);
-                
-                // Asignación de Sprite/Color
+
                 if (objData.objectSprite != null)
                 {
                     slotImage.sprite = objData.objectSprite;
                 }
-                slotImage.color = objData.displayColor; 
 
-                // Asignamos el nombre del objeto
+                slotImage.color = objData.displayColor;
+
                 TextMeshProUGUI textComponent = newSlot.GetComponentInChildren<TextMeshProUGUI>();
                 if (textComponent != null)
                 {
@@ -85,84 +70,75 @@ public class ObjectiveListUI : MonoBehaviour
             }
         }
     }
-    
-    /// <summary>
-    /// Muestra el contenedor raíz de la lista, OCULTA el HUD de juego y comienza la corrutina de memorización.
-    /// </summary>
+
+    // Muestra la lista, oculta el HUD y pausa el juego
     public void ShowList()
     {
-        // 1. Oculta el HUD de juego (el 0/5 y el cronómetro)
         if (gameHUDContainer != null)
         {
             gameHUDContainer.SetActive(false);
         }
-        
-        // 2. Muestra la lista de memorización
+
         if (listRootContainer != null)
         {
             listRootContainer.SetActive(true);
-            Debug.Log("ObjectiveListUI: Contenedor 'Lista' activado. Iniciando Fase de Memorización.");
         }
 
-        // 3. Pausa el juego
-        if (Time.timeScale != 0f) 
-        {
-            Time.timeScale = 0f;
-        }
-        
+        Time.timeScale = 0f;
         StartCoroutine(MemorizationPhase());
     }
 
+    // Controla el conteo de la fase de memorización
     private IEnumerator MemorizationPhase()
     {
         float timer = memorizationTime;
-        
-        // Bucle para contar y actualizar el texto
+
         while (timer > 0)
         {
             if (memorizationTimerText != null)
             {
-                memorizationTimerText.text = Mathf.CeilToInt(timer).ToString() + "s";
+                memorizationTimerText.text = Mathf.CeilToInt(timer) + "s";
             }
-            
-            yield return new WaitForSecondsRealtime(1f); 
+
+            yield return new WaitForSecondsRealtime(1f);
             timer -= 1f;
         }
-        
-        // Ocultar la lista y limpiar texto
+
         HideList();
+
         if (memorizationTimerText != null)
         {
             memorizationTimerText.text = "";
         }
-        
-        // CRÍTICO: LLAMADA PARA INICIAR EL JUEGO (Esto reanuda el tiempo y activa el HUD)
+
         if (ZonaDeEntregaManager.Instance != null)
         {
             ZonaDeEntregaManager.Instance.StartGamePhase();
         }
-        
-        Debug.Log("Fase de memorización terminada. ¡A jugar!");
     }
 
+    // Oculta la lista y desactiva el UI
     public void HideList()
     {
-        // Desactiva SOLO el fondo y los slots
         if (listRootContainer != null)
         {
             listRootContainer.SetActive(false);
         }
 
-        // desactivar el GameObject entero que contiene este script
-        this.gameObject.SetActive(false);
+        gameObject.SetActive(false);
     }
 
+    // Elimina los slots generados previamente
     private void ClearSlots()
     {
         foreach (Image img in objectiveSlots)
         {
-            if (img != null) Destroy(img.gameObject);
+            if (img != null)
+            {
+                Destroy(img.gameObject);
+            }
         }
+
         objectiveSlots.Clear();
     }
 }

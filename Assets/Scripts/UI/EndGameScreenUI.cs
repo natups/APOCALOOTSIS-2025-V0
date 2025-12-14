@@ -3,31 +3,36 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Controlador del panel de fin de juego.
-/// Permite mostrar resultados, actualizar botones y mantener contexto
-/// para volver correctamente desde la escena de controles.
-/// </summary>
+/// Controla el panel de fin de juego.
+/// Se encarga de mostrar el resultado de la partida, configurar los botones
+/// y manejar el contexto para volver correctamente desde la escena de controles.
 public class EndGameScreenUI : MonoBehaviour
 {
-    // Singleton para acceso global
+    // ==============================
+    // SINGLETON
+    // ==============================
+
+    // Permite acceder a este panel desde cualquier parte del juego
     public static EndGameScreenUI Instance { get; private set; }
 
-    /// <summary>
-    /// Enum que define desde dónde se abrió la escena de controles
+    
+    /// Define desde dónde se abrió la escena de controles,
     /// para saber a dónde volver al cerrarla.
-    /// </summary>
     public enum SceneOpenContext
     {
-        MainMenu,       // La escena controles fue abierta desde el menú principal
-        EndGamePanel    // La escena controles fue abierta desde el panel de fin de juego
+        MainMenu,       // Se abrió desde el menú principal
+        EndGamePanel    // Se abrió desde el panel de fin de juego
     }
+
+    // ==============================
+    // REFERENCIAS DE UI
+    // ==============================
 
     [Header("Panel principal del final")]
     public GameObject endScreenPanel;
 
     [Header("Textos")]
-    public TextMeshProUGUI titleText;     
+    public TextMeshProUGUI titleText;
     public TextMeshProUGUI collectedText;
 
     [Header("Botones")]
@@ -36,52 +41,57 @@ public class EndGameScreenUI : MonoBehaviour
     public Button changeModeBtn;
     public Button retryBtn;
 
+    // Contexto actual de apertura
     [HideInInspector]
     public SceneOpenContext CurrentContext = SceneOpenContext.MainMenu;
 
     private void Awake()
     {
-        // Singleton pattern: asegurarse de que solo haya una instancia
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        // Implementación del patrón Singleton
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
 
-        // Ocultar el panel al iniciar
+        // El panel comienza oculto
         if (endScreenPanel != null)
             endScreenPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Muestra el panel final y configura textos y botones
-    /// según si se ganó o se perdió.
-    /// </summary>
+    /// Muestra el panel de fin de juego y configura textos y botones
+    /// según el resultado de la partida.
     public void ShowEndScreen(bool won, int deliveredCount, int totalRequired)
     {
+        // Activar el panel final
         if (endScreenPanel != null)
             endScreenPanel.SetActive(true);
 
-        // Pausar el tiempo mientras se muestra el panel
+        // Pausar el juego
         Time.timeScale = 0f;
 
-        // Actualizar textos
+        // ==============================
+        // ACTUALIZACIÓN DE TEXTOS
+        // ==============================
+
         if (titleText != null)
             titleText.text = won ? "¡Han ganado!" : "¡Han perdido!";
 
         if (collectedText != null)
             collectedText.text = $"Objetos recolectados: {deliveredCount}/{totalRequired}";
 
-        // Configurar listeners de los botones
+        // Configurar acciones de los botones
         SetupButtons();
 
-        // Guardar contexto para saber a dónde volver desde controles
+        // Guardar el contexto actual
         CurrentContext = SceneOpenContext.EndGamePanel;
     }
 
-    /// <summary>
-    /// Configura los listeners de los botones del panel de fin de juego
-    /// </summary>
+    /// Configura los listeners de los botones del panel de fin de juego.
     private void SetupButtons()
     {
-        // Botón volver al menú principal
+        // ==============================
+        // BOTÓN: VOLVER AL MENÚ
+        // ==============================
         if (backToMenuBtn != null)
         {
             backToMenuBtn.onClick.RemoveAllListeners();
@@ -92,7 +102,9 @@ public class EndGameScreenUI : MonoBehaviour
             });
         }
 
-        // Botón abrir controles
+        // ==============================
+        // BOTÓN: CONTROLES
+        // ==============================
         if (controlsBtn != null)
         {
             controlsBtn.onClick.RemoveAllListeners();
@@ -100,8 +112,9 @@ public class EndGameScreenUI : MonoBehaviour
             {
                 Time.timeScale = 1f;
 
-                // Pasamos el contexto a la escena Controls
-                Controls.CurrentContext = (CurrentContext == SceneOpenContext.EndGamePanel)
+                // Pasar el contexto a la escena Controls
+                Controls.CurrentContext =
+                    (CurrentContext == SceneOpenContext.EndGamePanel)
                     ? Controls.ControlsContext.EndGamePanel
                     : Controls.ControlsContext.MainMenu;
 
@@ -109,8 +122,9 @@ public class EndGameScreenUI : MonoBehaviour
             });
         }
 
-
-        // Botón reiniciar juego
+        // ==============================
+        // BOTÓN: REINTENTAR
+        // ==============================
         if (retryBtn != null)
         {
             retryBtn.onClick.RemoveAllListeners();
@@ -122,9 +136,7 @@ public class EndGameScreenUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Oculta el panel de fin de juego
-    /// </summary>
+    /// Oculta el panel de fin de juego.
     public void HideEndScreen()
     {
         if (endScreenPanel != null)
@@ -133,17 +145,15 @@ public class EndGameScreenUI : MonoBehaviour
         CurrentContext = SceneOpenContext.MainMenu;
     }
 
-    /// <summary>
-    /// Método que se puede llamar desde botones de "cerrar"
-    /// Decide a dónde volver según contexto.
-    /// </summary>
+    /// Cierra la escena actual y decide a dónde volver
+    /// según el contexto desde el que se abrió.
     public void CloseScene()
     {
         Time.timeScale = 1f;
 
         if (CurrentContext == SceneOpenContext.EndGamePanel)
         {
-            // Mostrar el panel de fin de juego de nuevo
+            // Volver a mostrar el panel final
             if (endScreenPanel != null)
                 endScreenPanel.SetActive(true);
         }

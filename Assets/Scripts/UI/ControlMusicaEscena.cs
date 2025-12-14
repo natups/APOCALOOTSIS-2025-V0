@@ -3,77 +3,102 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class ControlMusicaEscena : MonoBehaviour
 {
-    // --- ¡NUEVO! Variables del Playlist ---
-    [Tooltip("La lista de canciones que sonarán en esta escena")]
+    // ==============================
+    // CONFIGURACIÓN DE LA MÚSICA
+    // ==============================
+
+    [Tooltip("Lista de canciones que se reproducirán en esta escena")]
     public AudioClip[] listaMusicaEscena;
 
-    [Tooltip("Cuántos segundos sonará cada canción antes de cambiar")]
-    public float tiempoPorCancion = 120f; // 2 minutos por defecto
+    [Tooltip("Duración en segundos de cada canción antes de cambiar")]
+    public float tiempoPorCancion = 120f;
 
-    private AudioSource miAudioSource;
-    private int indiceMusicaActual = 0;
-    private float temporizador;
+    // ==============================
+    // VARIABLES INTERNAS
+    // ==============================
+
+    private AudioSource miAudioSource;      // AudioSource de la escena
+    private int indiceMusicaActual = 0;     // Índice de la canción actual
+    private float temporizador;             // Controla cuándo cambiar de canción
 
     void Awake()
     {
-        // Preparamos el AudioSource de esta escena
+        // Obtener el AudioSource del mismo GameObject
         miAudioSource = GetComponent<AudioSource>();
-        
-        // --- ¡NUEVO! Asegurarse de que el AudioSource no haga loop ---
-        miAudioSource.loop = false; // El script controlará la siguiente canción
-        miAudioSource.playOnAwake = false; // El script la iniciará
+
+        // El script controla el cambio de canciones, no el AudioSource
+        miAudioSource.loop = false;
+        miAudioSource.playOnAwake = false;
     }
 
     void Start()
     {
-        // 1. Pausar la música del menú (igual que antes)
+        // ==============================
+        // 1. PAUSAR MÚSICA GLOBAL (MENÚ)
+        // ==============================
+
         if (MusicaSingleton.instance != null)
         {
             MusicaSingleton.instance.PausarMusica(true);
         }
-        
-        // 2. ¡NUEVO! Iniciar nuestro propio playlist
+
+        // ==============================
+        // 2. INICIAR PLAYLIST DE LA ESCENA
+        // ==============================
+
         if (listaMusicaEscena.Length > 0)
         {
             miAudioSource.clip = listaMusicaEscena[0];
             miAudioSource.Play();
-            temporizador = tiempoPorCancion; // Iniciar temporizador
+            temporizador = tiempoPorCancion;
         }
     }
 
     void Update()
     {
-        // Si no hay canciones, no hacemos nada
-        if (listaMusicaEscena.Length == 0)
-        {
-            return;
-        }
+        // Si no hay canciones configuradas, no se ejecuta la lógica
+        if (listaMusicaEscena.Length == 0) return;
 
-        // --- ¡NUEVO! Lógica del Temporizador ---
+        // ==============================
+        // CONTROL DEL TIEMPO POR CANCIÓN
+        // ==============================
+
         temporizador -= Time.deltaTime;
 
-        if (temporizador <= 0)
+        if (temporizador <= 0f)
         {
             SiguienteCancion();
         }
     }
 
+    // ==============================
+    // CAMBIO DE CANCIÓN
+    // ==============================
     void SiguienteCancion()
     {
+        // Avanza al siguiente índice
         indiceMusicaActual++;
+
+        // Si llega al final, vuelve al inicio de la lista
         if (indiceMusicaActual >= listaMusicaEscena.Length)
         {
-            indiceMusicaActual = 0; // Volver al inicio de la lista
+            indiceMusicaActual = 0;
         }
 
+        // Reproduce la nueva canción
         miAudioSource.clip = listaMusicaEscena[indiceMusicaActual];
         miAudioSource.Play();
-        temporizador = tiempoPorCancion; // Reiniciar temporizador
+
+        // Reinicia el temporizador
+        temporizador = tiempoPorCancion;
     }
 
     void OnDestroy()
     {
-        // 3. Reanudar la música del menú (igual que antes)
+        // ==============================
+        // REANUDAR MÚSICA GLOBAL
+        // ==============================
+
         if (MusicaSingleton.instance != null)
         {
             MusicaSingleton.instance.PausarMusica(false);
