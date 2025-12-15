@@ -15,17 +15,17 @@ public class ZonaDeEntregaManager : MonoBehaviour
     // ===============================
     // REFERENCIAS PRINCIPALES
     // ===============================
-    public ObjectSpawner objectSpawner;        // Maneja el spawn y los objetivos
-    public GameTimer gameTimer;                // Controla el tiempo de la partida
-    public PlayerController player1Controller; // Referencia al jugador 1
-    public PlayerController player2Controller; // Referencia al jugador 2
+    public ObjectSpawner objectSpawner; 		   // Maneja el spawn y los objetivos
+    public GameTimer gameTimer; 			   // Controla el tiempo de la partida
+    public PlayerController player1Controller;  // Referencia al jugador 1
+    public PlayerController player2Controller;  // Referencia al jugador 2
     public DarknessController darknessController; // Controla el aumento de oscuridad
-    public ObjectiveListUI objectiveListUI;    // UI de memorización de objetivos
+    public ObjectiveListUI objectiveListUI; 	   // UI de memorización de objetivos
 
     // ===============================
     // UI DE FIN DE PARTIDA
     // ===============================
-    public EndGameScreenUI endGameScreenUI;     // Pantalla final modo COOP
+    public EndGameScreenUI endGameScreenUI; 	 // Pantalla final modo COOP
     public EndGameScreenVsUI endGameVsScreenUI; // Pantalla final modo VERSUS
 
     // ===============================
@@ -33,22 +33,22 @@ public class ZonaDeEntregaManager : MonoBehaviour
     // ===============================
     public GameObject inGameHUDContainer; // HUD principal
     public TextMeshProUGUI listaObjetivoText; // Texto X / Total
-    public TextMeshProUGUI p1ScoreText;   // Puntaje jugador 1
-    public TextMeshProUGUI p2ScoreText;   // Puntaje jugador 2
+    public TextMeshProUGUI p1ScoreText; 	 // Puntaje jugador 1
+    public TextMeshProUGUI p2ScoreText; 	 // Puntaje jugador 2
 
     // ===============================
     // CONFIGURACIÓN DE JUEGO
     // ===============================
     public GameMode currentMode = GameMode.COOP; // Modo actual
-    public int totalObjectsToWin = 5;            // Objetos necesarios para ganar
+    public int totalObjectsToWin = 5; 		   // Objetos necesarios para ganar
 
     // ===============================
     // ESTADO INTERNO
     // ===============================
     private int objectsDeliveredCount = 0; // Cantidad de objetos entregados correctamente
-    private int player1Score = 0;          // Puntaje jugador 1
-    private int player2Score = 0;          // Puntaje jugador 2
-    private bool gameOver = true;           // Bloquea acciones cuando termina el juego
+    private int player1Score = 0; 		   // Puntaje jugador 1
+    private int player2Score = 0; 		   // Puntaje jugador 2
+    private bool gameOver = true; 		   // Bloquea acciones cuando termina el juego
 
     // ===============================
     // SINGLETON
@@ -255,17 +255,18 @@ public class ZonaDeEntregaManager : MonoBehaviour
         // ===============================
         else
         {
-            string winnerText;
+            EndGameScreenVsUI.GameResult result;
 
             // Compara puntajes para determinar ganador
             if (player1Score > player2Score)
-                winnerText = "Jugador 1 gana!";
+                result = EndGameScreenVsUI.GameResult.Player1Wins;
             else if (player2Score > player1Score)
-                winnerText = "Jugador 2 gana!";
+                result = EndGameScreenVsUI.GameResult.Player2Wins;
             else
-                winnerText = "¡Empate!";
+                result = EndGameScreenVsUI.GameResult.Draw;
 
-            endGameVsScreenUI?.ShowEndScreenVs(winnerText, player1Score, player2Score);
+            // Llama al nuevo método que solo necesita el enum de resultado
+            endGameVsScreenUI?.ShowEndScreenVs(result);
         }
     }
 

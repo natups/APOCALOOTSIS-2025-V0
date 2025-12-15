@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 5492599}
   - component: {fileID: 5492601}
   - component: {fileID: 5492600}
+  - component: {fileID: 5492602}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -176,7 +177,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Iniciar Sesi\xF3n"
+  m_text: "Iniciar sesi\xF3n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 360cbd374d00b2d41ad0d75fad8a66a2, type: 2}
   m_sharedMaterial: {fileID: 1203203492554051532, guid: 360cbd374d00b2d41ad0d75fad8a66a2, type: 2}
@@ -255,6 +256,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5492598}
   m_CullTransparentMesh: 1
+--- !u!114 &5492602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5492598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Iniciar Sesi\xF3n"
 --- !u!1 &45335438
 GameObject:
   m_ObjectHideFlags: 0
@@ -555,6 +569,7 @@ GameObject:
   - component: {fileID: 339022855}
   - component: {fileID: 339022857}
   - component: {fileID: 339022856}
+  - component: {fileID: 339022858}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -680,6 +695,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 339022854}
   m_CullTransparentMesh: 1
+--- !u!114 &339022858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339022854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Registrarse
 --- !u!1 &400613450
 GameObject:
   m_ObjectHideFlags: 0
@@ -829,7 +857,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::textotraducible
-  keyID: JUGAR
+  keyID: Jugar
 --- !u!1 &636189943
 GameObject:
   m_ObjectHideFlags: 0
@@ -979,7 +1007,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::textotraducible
-  keyID: AJUSTES
+  keyID: Ajustes
 --- !u!1 &841983325
 GameObject:
   m_ObjectHideFlags: 0
@@ -1960,6 +1988,7 @@ GameObject:
   - component: {fileID: 1647646029}
   - component: {fileID: 1647646031}
   - component: {fileID: 1647646030}
+  - component: {fileID: 1647646032}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2085,6 +2114,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1647646028}
   m_CullTransparentMesh: 1
+--- !u!114 &1647646032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1647646028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Controles
 --- !u!1 &1704515401
 GameObject:
   m_ObjectHideFlags: 0
@@ -2175,6 +2217,7 @@ GameObject:
   - component: {fileID: 1797285055}
   - component: {fileID: 1797285057}
   - component: {fileID: 1797285056}
+  - component: {fileID: 1797285058}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2300,6 +2343,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1797285054}
   m_CullTransparentMesh: 1
+--- !u!114 &1797285058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1797285054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Cerrar sesi\xF3n"
 --- !u!1 &1864332649
 GameObject:
   m_ObjectHideFlags: 0
@@ -2948,11 +3004,11 @@ RectTransform:
   - {fileID: 1196766828}
   - {fileID: 1156926475}
   - {fileID: 1065196664}
-  - {fileID: 116048381}
   - {fileID: 1095311299}
   - {fileID: 1864588902}
   - {fileID: 1931599055}
   - {fileID: 1864332650}
+  - {fileID: 116048381}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2971,6 +3027,7 @@ GameObject:
   - component: {fileID: 2106070939}
   - component: {fileID: 2106070941}
   - component: {fileID: 2106070940}
+  - component: {fileID: 2106070942}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -3096,6 +3153,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2106070938}
   m_CullTransparentMesh: 1
+--- !u!114 &2106070942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2106070938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

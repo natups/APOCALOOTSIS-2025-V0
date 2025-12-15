@@ -4,10 +4,20 @@ using TMPro;
 using UnityEngine.SceneManagement;
 
 // Controla la pantalla de fin de juego en modo VERSUS.
-// Muestra quién ganó, los puntajes de cada jugador
-// y gestiona los botones de navegación.
+// Muestra quién ganó y gestiona los botones de navegación.
 public class EndGameScreenVsUI : MonoBehaviour
 {
+    // =========================
+    // ENUMERACIÓN DE RESULTADOS
+    // =========================
+    // Nota: Esta enumeración es usada por ZonaDeEntregaManager
+    public enum GameResult
+    {
+        Player1Wins,
+        Player2Wins,
+        Draw
+    }
+
     // =========================
     // PANEL PRINCIPAL
     // =========================
@@ -17,14 +27,15 @@ public class EndGameScreenVsUI : MonoBehaviour
     public GameObject endScreenPanel;
 
     // =========================
-    // TEXTOS
+    // TEXTOS DE RESULTADO (EXPLÍCITAMENTE PUBLIC)
     // =========================
 
-    // Texto que indica quién ganó la partida
-    public TextMeshProUGUI winLoseText;
+    // Textos separados para la traducción. Deben asignarse en el Inspector.
+    public TextMeshProUGUI Player1WinsTxt; // Texto para: Jugador 1 Gana
+    public TextMeshProUGUI Player2WinsTxt; // Texto para: Jugador 2 Gana
+    public TextMeshProUGUI DrawTxt;        // Texto para: Empate
 
-    // Texto que muestra los objetos recolectados por cada jugador
-    public TextMeshProUGUI collectedObjectsText;
+    // NOTA: Se eliminaron winLoseText y collectedObjectsText.
 
     // =========================
     // BOTONES
@@ -39,6 +50,9 @@ public class EndGameScreenVsUI : MonoBehaviour
         // Aseguramos que el panel esté oculto al iniciar la escena
         if (endScreenPanel != null)
             endScreenPanel.SetActive(false);
+            
+        // Aseguramos que los textos de resultado estén ocultos al iniciar
+        SetResultTextsActive(false, false, false);
 
         // Asignación de listeners de los botones
         if (retryButton != null)
@@ -50,27 +64,41 @@ public class EndGameScreenVsUI : MonoBehaviour
         if (controlsButton != null)
             controlsButton.onClick.AddListener(OnControlsButton);
     }
+    
+    // Método auxiliar para activar/desactivar los textos
+    private void SetResultTextsActive(bool p1Active, bool p2Active, bool drawActive)
+    {
+        // Activamos/desactivamos los gameObjects de los textos
+        if (Player1WinsTxt != null) Player1WinsTxt.gameObject.SetActive(p1Active);
+        if (Player2WinsTxt != null) Player2WinsTxt.gameObject.SetActive(p2Active);
+        if (DrawTxt != null) DrawTxt.gameObject.SetActive(drawActive);
+    }
 
     // =========================
     // MOSTRAR / OCULTAR UI
     // =========================
 
-    // Muestra la pantalla de fin de juego con los resultados
-    public void ShowEndScreenVs(string winnerText, int player1Score, int player2Score)
+    // Muestra la pantalla de fin de juego, activando el texto de resultado correcto
+    public void ShowEndScreenVs(GameResult result)
     {
         if (endScreenPanel == null) return;
 
         // Activar el panel principal
         endScreenPanel.SetActive(true);
 
-        // Mostrar quién ganó
-        if (winLoseText != null)
-            winLoseText.text = winnerText;
-
-        // Mostrar los puntajes de ambos jugadores
-        if (collectedObjectsText != null)
-            collectedObjectsText.text =
-                $"Jugador 1: {player1Score} / 5\nJugador 2: {player2Score} / 5";
+        // Mostrar el texto de resultado correspondiente
+        switch (result)
+        {
+            case GameResult.Player1Wins:
+                SetResultTextsActive(true, false, false);
+                break;
+            case GameResult.Player2Wins:
+                SetResultTextsActive(false, true, false);
+                break;
+            case GameResult.Draw:
+                SetResultTextsActive(false, false, true);
+                break;
+        }
     }
 
     // Oculta la pantalla de fin de juego
@@ -78,6 +106,9 @@ public class EndGameScreenVsUI : MonoBehaviour
     {
         if (endScreenPanel != null)
             endScreenPanel.SetActive(false);
+            
+        // Ocultamos todos los textos de resultado al ocultar la pantalla
+        SetResultTextsActive(false, false, false);
     }
 
     // =========================

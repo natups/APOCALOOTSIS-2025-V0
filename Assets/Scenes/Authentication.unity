@@ -455,6 +455,7 @@ GameObject:
   - component: {fileID: 340785041}
   - component: {fileID: 340785040}
   - component: {fileID: 340785039}
+  - component: {fileID: 340785042}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -600,6 +601,65 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 340785037}
   m_CullTransparentMesh: 1
+--- !u!114 &340785042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340785037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Contrase\xF1a"
+--- !u!1 &343065854
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 343065856}
+  - component: {fileID: 343065855}
+  m_Layer: 0
+  m_Name: APIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &343065855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343065854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c29a7869681d09245bce2f49bbe56d5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::APIManager
+  projectId: 8234c0bc-7208-423d-a87a-58b160420cc5
+  currentLanguage: es
+--- !u!4 &343065856
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343065854}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &389007702
 GameObject:
   m_ObjectHideFlags: 0
@@ -923,6 +983,7 @@ GameObject:
   - component: {fileID: 430717062}
   - component: {fileID: 430717061}
   - component: {fileID: 430717060}
+  - component: {fileID: 430717063}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -1068,6 +1129,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 430717058}
   m_CullTransparentMesh: 1
+--- !u!114 &430717063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430717058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Direccion de correo electronico
 --- !u!1 &474765134
 GameObject:
   m_ObjectHideFlags: 0
@@ -1215,6 +1289,7 @@ GameObject:
   - component: {fileID: 549709226}
   - component: {fileID: 549709228}
   - component: {fileID: 549709227}
+  - component: {fileID: 549709229}
   m_Layer: 5
   m_Name: LoginText
   m_TagString: Untagged
@@ -1340,6 +1415,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 549709225}
   m_CullTransparentMesh: 1
+--- !u!114 &549709229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 549709225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Iniciar Sesi\xF3n"
 --- !u!1 &552103976
 GameObject:
   m_ObjectHideFlags: 0
@@ -1486,6 +1574,7 @@ GameObject:
   - component: {fileID: 1032034094}
   - component: {fileID: 1032034096}
   - component: {fileID: 1032034095}
+  - component: {fileID: 1032034097}
   m_Layer: 5
   m_Name: MailText
   m_TagString: Untagged
@@ -1509,8 +1598,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -477.62866, y: 42.99124}
-  m_SizeDelta: {x: 319.555, y: 52.7701}
+  m_AnchoredPosition: {x: -334.77, y: 44.164}
+  m_SizeDelta: {x: 605.27, y: 50.424}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1032034095
 MonoBehaviour:
@@ -1611,6 +1700,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1032034093}
   m_CullTransparentMesh: 1
+--- !u!114 &1032034097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1032034093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: 'Ingrese su Mail:'
 --- !u!1 &1061538904
 GameObject:
   m_ObjectHideFlags: 0
@@ -2189,6 +2291,7 @@ GameObject:
   - component: {fileID: 1279915714}
   - component: {fileID: 1279915716}
   - component: {fileID: 1279915715}
+  - component: {fileID: 1279915717}
   m_Layer: 5
   m_Name: RegisterText
   m_TagString: Untagged
@@ -2314,6 +2417,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1279915713}
   m_CullTransparentMesh: 1
+--- !u!114 &1279915717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1279915713}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Registrarse
 --- !u!1 &1308583867
 GameObject:
   m_ObjectHideFlags: 0
@@ -2641,6 +2757,7 @@ GameObject:
   - component: {fileID: 1415423910}
   - component: {fileID: 1415423909}
   - component: {fileID: 1415423908}
+  - component: {fileID: 1415423911}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -2786,6 +2903,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1415423906}
   m_CullTransparentMesh: 1
+--- !u!114 &1415423911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1415423906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Direccion de correo electronico
 --- !u!1 &1444638389
 GameObject:
   m_ObjectHideFlags: 0
@@ -2849,6 +2979,7 @@ GameObject:
   - component: {fileID: 1446222721}
   - component: {fileID: 1446222723}
   - component: {fileID: 1446222722}
+  - component: {fileID: 1446222724}
   m_Layer: 5
   m_Name: LoginText
   m_TagString: Untagged
@@ -2974,6 +3105,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1446222720}
   m_CullTransparentMesh: 1
+--- !u!114 &1446222724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446222720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Iniciar Sesi\xF3n"
 --- !u!1 &1453646990
 GameObject:
   m_ObjectHideFlags: 0
@@ -2985,6 +3129,7 @@ GameObject:
   - component: {fileID: 1453646991}
   - component: {fileID: 1453646993}
   - component: {fileID: 1453646992}
+  - component: {fileID: 1453646994}
   m_Layer: 5
   m_Name: MailText
   m_TagString: Untagged
@@ -3110,6 +3255,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1453646990}
   m_CullTransparentMesh: 1
+--- !u!114 &1453646994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453646990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: 'Ingrese su Mail:'
 --- !u!1 &1497240922
 GameObject:
   m_ObjectHideFlags: 0
@@ -3487,6 +3645,7 @@ GameObject:
   - component: {fileID: 1827167942}
   - component: {fileID: 1827167944}
   - component: {fileID: 1827167943}
+  - component: {fileID: 1827167945}
   m_Layer: 5
   m_Name: PasswordText
   m_TagString: Untagged
@@ -3612,6 +3771,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1827167941}
   m_CullTransparentMesh: 1
+--- !u!114 &1827167945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827167941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Ingrese su contrase\xF1a:"
 --- !u!1 &1832581527
 GameObject:
   m_ObjectHideFlags: 0
@@ -4088,6 +4260,7 @@ GameObject:
   - component: {fileID: 1999037575}
   - component: {fileID: 1999037577}
   - component: {fileID: 1999037576}
+  - component: {fileID: 1999037578}
   m_Layer: 5
   m_Name: PasswordText
   m_TagString: Untagged
@@ -4111,8 +4284,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 393.0738, y: 44.164368}
-  m_SizeDelta: {x: 484.8301, y: 50.4242}
+  m_AnchoredPosition: {x: 407.6817, y: 44.164}
+  m_SizeDelta: {x: 514.046, y: 50.424}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1999037576
 MonoBehaviour:
@@ -4213,6 +4386,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1999037574}
   m_CullTransparentMesh: 1
+--- !u!114 &1999037578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999037574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Ingrese su contrase\xF1a:"
 --- !u!1 &2076606037
 GameObject:
   m_ObjectHideFlags: 0
@@ -4356,6 +4542,7 @@ GameObject:
   - component: {fileID: 2081218405}
   - component: {fileID: 2081218407}
   - component: {fileID: 2081218406}
+  - component: {fileID: 2081218408}
   m_Layer: 5
   m_Name: RegisterText
   m_TagString: Untagged
@@ -4481,6 +4668,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2081218404}
   m_CullTransparentMesh: 1
+--- !u!114 &2081218408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2081218404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: Registrarse
 --- !u!1 &2129110029
 GameObject:
   m_ObjectHideFlags: 0
@@ -4493,6 +4693,7 @@ GameObject:
   - component: {fileID: 2129110033}
   - component: {fileID: 2129110032}
   - component: {fileID: 2129110031}
+  - component: {fileID: 2129110034}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -4638,6 +4839,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2129110029}
   m_CullTransparentMesh: 1
+--- !u!114 &2129110034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129110029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d60f435b3c05dc4a8d84d8f010973a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::textotraducible
+  keyID: "Contrase\xF1a"
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -4646,3 +4860,4 @@ SceneRoots:
   - {fileID: 1833303123}
   - {fileID: 60320864}
   - {fileID: 1081982452}
+  - {fileID: 343065856}
